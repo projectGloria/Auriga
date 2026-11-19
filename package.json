@@ -1,0 +1,32 @@
+{
+  "name": "auriga",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:app": "cargo build -p auriga-helper && vite",
+    "build": "tsc --noEmit && vite build",
+    "build:app": "cargo build --release -p auriga-helper && tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "bindings": "cargo test --workspace export_bindings",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@tanstack/react-table": "8.21.3",
+    "@tauri-apps/api": "2.12.5",
+    "lucide-react": "1.76.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.3.5",
+    "@tauri-apps/cli": "2.12.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.3.0",
+    "tailwindcss": "4.3.5",
+    "typescript": "6.0.3",
+    "vite": "8.3.8"
+  }
+}
