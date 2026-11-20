@@ -22,6 +22,8 @@ pub struct AppState {
     pub kb_watcher: Mutex<Option<KbWatcher>>,
     /// Elevated helper for the current fix session (started on first write).
     pub helper: Mutex<fixes::HelperSlot>,
+    /// Devices re-read after a fix, overlaid on the scan they changed.
+    pub live_devices: Mutex<fixes::LiveDevices>,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -36,6 +38,7 @@ pub fn run() {
                 kb: RwLock::new(Arc::new(Kb::default())),
                 kb_watcher: Mutex::new(None),
                 helper: Mutex::new(None),
+                live_devices: Mutex::new(Default::default()),
             });
             start_kb(app.handle());
             Ok(())

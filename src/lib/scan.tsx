@@ -67,6 +67,7 @@ export function ScanProvider({ children }: { children: ReactNode }) {
         else if (f.status === "cancelled") setNotice("Scan cancelled — showing the previous result.");
         else setError(`Scan failed: ${f.error ?? "unknown error"}`);
       }),
+      events.deviceRefreshed(() => void reload()),
     ];
     return () => subs.forEach((s) => void s.then((u) => u()));
   }, [reload]);

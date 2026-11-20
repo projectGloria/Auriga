@@ -44,6 +44,9 @@ export const events = {
     listen<ScanFinished>("scan://finished", (e) => cb(e.payload)),
   kbReloaded: (cb: (k: KbStatus) => void): Promise<UnlistenFn> =>
     listen<KbStatus>("kb://reloaded", (e) => cb(e.payload)),
+  /** A fix or revert re-read a device; scan-derived views should reload. */
+  deviceRefreshed: (cb: (deviceId: string) => void): Promise<UnlistenFn> =>
+    listen<string>("devices://refreshed", (e) => cb(e.payload)),
 };
 
 export function errorText(e: unknown): string {

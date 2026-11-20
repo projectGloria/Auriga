@@ -10,12 +10,73 @@ use auriga_core::fix::{
     RevertOutcome, SystemBackend, engine,
 };
 use auriga_core::kb::{self, ValueText};
+use auriga_core::snapshot::{DeviceRecord, SystemSnapshot};
+use auriga_core::store::ScanSummary;
+use std::collections::HashMap;
 use helper_ipc::proto::{HelperOp, HelperResult};
 use serde::Serialize;
-use tauri::{AppHandle, Manager, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 use ts_rs::TS;
 
 type CmdResult<T> = Result<T, String>;
+
+/// Emitted after a fix or revert re-read a device; the UI reloads its data.
+pub const EV_DEVICE_REFRESHED: &str = "devices://refreshed";
+
+/// Devices re-read after a fix or revert, overlaid on the scan they were
+/// changed after, so Findings show the new state without a full rescan. Tied
+/// to that scan's `collected_at`: any newer scan supersedes them.
+#[derive(Default)]
+pub struct LiveDevices {
+    scan: String,
+    devices: HashMap<String, DeviceRecord>,
+}
+
+/// The latest stored scan with re-read devices overlaid.
+pub fn latest_live(state: &AppState) -> CmdResult<Option<(ScanSummary, SystemSnapshot)>> {
+    let Some((summary, mut snap)) = state
+        .store
+        .lock()
+        .unwrap()
+        .latest_snapshot()
+        .map_err(|e| e.to_string())?
+    else {
+        return Ok(None);
+    };
+    let live = state.live_devices.lock().unwrap();
+    if live.scan == snap.collected_at {
+        for d in &mut snap.devices {
+            if let Some(n) = live.devices.get(&d.instance_id.to_ascii_uppercase()) {
+                *d = n.clone();
+            }
+        }
+    }
+    Ok(Some((summary, snap)))
+}
+
+/// Re-reads one device after a change and overlays it (best effort: on
+/// failure the scan data stays and a rescan shows the change).
+fn refresh_device(app: &AppHandle, device_id: &str) {
+    let state = app.state::<AppState>();
+    let mut be = AppBackend { slot: &mut None };
+    let Ok(Some(dev)) = be.read_device(device_id) else {
+        return;
+    };
+    let Ok(Some((_, snap))) = state.store.lock().unwrap().latest_snapshot() else {
+        return;
+    };
+    {
+        let mut live = state.live_devices.lock().unwrap();
+        if live.scan != snap.collected_at {
+            *live = LiveDevices {
+                scan: snap.collected_at,
+                devices: HashMap::new(),
+            };
+        }
+        live.devices.insert(device_id.to_ascii_uppercase(), dev);
+    }
+    let _ = app.emit(EV_DEVICE_REFRESHED, device_id);
+}
 
 #[derive(Serialize, TS)]
 #[serde(rename_all = "camelCase")]
@@ -163,13 +224,7 @@ impl SystemBackend for AppBackend<'_> {
 /// Rebuild the fix from the KB over the latest scan; the UI only names it.
 fn find_target(state: &AppState, finding_key: &str, fix_id: &str) -> CmdResult<FixTarget> {
     let kb = state.kb.read().unwrap().clone();
-    let (_, snap) = state
-        .store
-        .lock()
-        .unwrap()
-        .latest_snapshot()
-        .map_err(|e| e.to_string())?
-        .ok_or("No scan yet.")?;
+    let (_, snap) = latest_live(state)?.ok_or("No scan yet.")?;
     let findings = kb::eval_snapshot(&snap, &kb.rules);
     engine::target_from_findings(&findings, finding_key, fix_id)
         .ok_or_else(|| "This fix is no longer suggested by the latest scan. Scan again.".into())
@@ -218,15 +273,21 @@ pub async fn apply_fix(
             .ok()
             .flatten()
             .map(|(_, s)| monitor::baseline(&target.device_id, &s, &analyze(&s)));
-        let mut slot = state.helper.lock().unwrap();
-        engine::apply(
-            &mut AppBackend { slot: &mut slot },
-            &state.store,
-            &target,
-            expected_from.as_ref(),
-            &options,
-            baseline,
-        )
+        let out = {
+            let mut slot = state.helper.lock().unwrap();
+            engine::apply(
+                &mut AppBackend { slot: &mut slot },
+                &state.store,
+                &target,
+                expected_from.as_ref(),
+                &options,
+                baseline,
+            )?
+        };
+        if matches!(out, ApplyOutcome::Done { .. }) {
+            refresh_device(&app, &target.device_id);
+        }
+        Ok(out)
     })
     .await
 }
@@ -235,8 +296,14 @@ pub async fn apply_fix(
 pub async fn revert_fix(app: AppHandle, id: i64) -> CmdResult<RevertOutcome> {
     blocking(move || {
         let state = app.state::<AppState>();
-        let mut slot = state.helper.lock().unwrap();
-        engine::revert(&mut AppBackend { slot: &mut slot }, &state.store, id)
+        let out = {
+            let mut slot = state.helper.lock().unwrap();
+            engine::revert(&mut AppBackend { slot: &mut slot }, &state.store, id)?
+        };
+        if let RevertOutcome::Done { record } = &out {
+            refresh_device(&app, &record.device_id);
+        }
+        Ok(out)
     })
     .await
 }

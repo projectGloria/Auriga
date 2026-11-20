@@ -1,3 +1,4 @@
+import { CircleAlert, CircleCheck, CircleHelp, CircleMinus, ShieldAlert, ShieldCheck, ShieldQuestion, ShieldX, Unplug, type LucideIcon } from "lucide-react";
 import type { DeviceRecord } from "../bindings/DeviceRecord";
 import type { SignatureStatus } from "../bindings/SignatureStatus";
 
@@ -34,6 +35,22 @@ export const signatureLabel: Record<SignatureStatus, string> = {
 };
 
 /** YYYY-MM-DD from an RFC3339 timestamp (or passthrough). */
+export const stateIcon: Record<DeviceState["key"], LucideIcon> = {
+  ok: CircleCheck,
+  problem: CircleAlert,
+  disabled: CircleMinus,
+  ghost: Unplug,
+  unknown: CircleHelp,
+};
+
+export const signatureIcon: Record<SignatureStatus, LucideIcon> = {
+  valid: ShieldCheck,
+  testSigned: ShieldAlert,
+  invalid: ShieldX,
+  notSigned: ShieldX,
+  unknown: ShieldQuestion,
+};
+
 export function day(s: string | null | undefined): string {
   return s ? s.slice(0, 10) : "";
 }

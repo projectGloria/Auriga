@@ -14,9 +14,9 @@ import type { MatchAssessment } from "../bindings/MatchAssessment";
 import { DeviceDrawer } from "../components/DeviceDrawer";
 import { ScanControls } from "../components/ScanControls";
 import { LOG_SOURCES, WarningsBanner } from "../components/Warnings";
-import { Badge, Banner, PageHeader } from "../components/ui";
-import { levelLabel, levelTone, matchLabel } from "../lib/analysis";
-import { day, deviceState, installed, searchText, signatureLabel, signatureTone } from "../lib/device";
+import { Banner, PageHeader, StatusIcon } from "../components/ui";
+import { levelIcon, levelLabel, levelTone, matchLabel } from "../lib/analysis";
+import { day, deviceState, installed, searchText, signatureIcon, signatureLabel, signatureTone, stateIcon } from "../lib/device";
 import { useScan } from "../lib/scan";
 
 type StatusFilter = "all" | "problems" | "disabled" | "unsigned" | "match";
@@ -47,9 +47,12 @@ const makeColumns = (matches: Map<string, MatchAssessment>) => [
     cell: (c) => {
       const s = c.getValue();
       return (
-        <Badge tone={s.tone} title={c.row.original.status.problemText ?? undefined}>
-          {s.label}
-        </Badge>
+        <StatusIcon
+          icon={stateIcon[s.key]}
+          tone={s.tone}
+          label={[s.label, c.row.original.status.problemText].filter(Boolean).join(": ")}
+          text={s.key === "problem" ? s.label : undefined}
+        />
       );
     },
   }),
@@ -68,9 +71,12 @@ const makeColumns = (matches: Map<string, MatchAssessment>) => [
       const s = c.getValue();
       if (!s) return <span className="text-zinc-600">—</span>;
       return (
-        <Badge tone={signatureTone[s]} title={c.row.original.driver?.signature.signer ?? undefined}>
-          {signatureLabel[s]}
-        </Badge>
+        <StatusIcon
+          icon={signatureIcon[s]}
+          tone={signatureTone[s]}
+          label={[signatureLabel[s], c.row.original.driver?.signature.signer].filter(Boolean).join(" · ")}
+          text={s === "valid" || s === "unknown" ? undefined : signatureLabel[s]}
+        />
       );
     },
   }),
@@ -84,9 +90,7 @@ const makeColumns = (matches: Map<string, MatchAssessment>) => [
       const m = c.getValue();
       if (!m || m.kind.kind === "none") return <span className="text-zinc-600">—</span>;
       return (
-        <Badge tone={levelTone[m.level]} title={[matchLabel(m), ...m.notes].join("\n")}>
-          {levelLabel[m.level]}
-        </Badge>
+        <StatusIcon icon={levelIcon[m.level]} tone={levelTone[m.level]} label={[`${levelLabel[m.level]}: ${matchLabel(m)}`, ...m.notes].join("\n")} />
       );
     },
   }),

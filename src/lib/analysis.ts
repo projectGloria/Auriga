@@ -1,4 +1,5 @@
 // Display helpers for the analysis types (labels, tones, time formatting).
+import { BadgeCheck, Info, OctagonAlert, TriangleAlert, type LucideIcon } from "lucide-react";
 import type { Level } from "../bindings/Level";
 import type { MatchAssessment } from "../bindings/MatchAssessment";
 import type { SignalKind } from "../bindings/SignalKind";
@@ -39,6 +40,7 @@ export const timelineTone: Record<TimelineKind, Tone> = {
 
 export const levelTone: Record<Level, Tone> = { good: "ok", info: "info", warn: "warn", bad: "bad" };
 export const levelLabel: Record<Level, string> = { good: "Good", info: "Note", warn: "Check", bad: "Problem" };
+export const levelIcon: Record<Level, LucideIcon> = { good: BadgeCheck, info: Info, warn: TriangleAlert, bad: OctagonAlert };
 
 export function matchLabel(m: MatchAssessment): string {
   switch (m.kind.kind) {

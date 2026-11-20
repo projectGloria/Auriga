@@ -148,12 +148,7 @@ pub fn cancel_scan(state: State<'_, AppState>) -> bool {
 
 #[tauri::command]
 pub fn get_latest_snapshot(state: State<'_, AppState>) -> CmdResult<Option<LatestSnapshot>> {
-    Ok(state
-        .store
-        .lock()
-        .unwrap()
-        .latest_snapshot()
-        .map_err(err)?
+    Ok(crate::fixes::latest_live(&state)?
         .map(|(summary, snapshot)| LatestSnapshot {
             summary,
             analysis: analyze(&snapshot),
@@ -165,7 +160,7 @@ pub fn get_latest_snapshot(state: State<'_, AppState>) -> CmdResult<Option<Lates
 #[tauri::command]
 pub fn get_findings(state: State<'_, AppState>) -> CmdResult<FindingsReport> {
     let kb = state.kb.read().unwrap().clone();
-    let latest = state.store.lock().unwrap().latest_snapshot().map_err(err)?;
+    let latest = crate::fixes::latest_live(&state)?;
     let (scan_collected_at, findings) = match latest {
         Some((_, snap)) => (
             Some(snap.collected_at.clone()),

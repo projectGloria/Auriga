@@ -1,4 +1,4 @@
-import { BookOpen, ChevronDown, ChevronRight, ExternalLink, Lightbulb, ShieldCheck, TriangleAlert } from "lucide-react";
+import { BookOpen, ChevronDown, ChevronRight, CircleCheck, CircleSlash, ExternalLink, Lightbulb, ListChecks, ShieldCheck, ShieldHalf, TriangleAlert, Wrench } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Confidence } from "../bindings/Confidence";
 import type { Finding } from "../bindings/Finding";
@@ -9,7 +9,7 @@ import type { Severity } from "../bindings/Severity";
 import type { ValueText } from "../bindings/ValueText";
 import { FixDialog } from "../components/FixDialog";
 import { ScanControls } from "../components/ScanControls";
-import { Badge, Banner, Button, PageHeader } from "../components/ui";
+import { Badge, Banner, Button, PageHeader, StatusIcon } from "../components/ui";
 import { api, errorText, events, inTauri } from "../lib/api";
 import type { Tone } from "../lib/device";
 import { useScan } from "../lib/scan";
@@ -52,8 +52,8 @@ function useFindings() {
   // ...and whenever a rule file changes on disk.
   useEffect(() => {
     if (!inTauri) return;
-    const sub = events.kbReloaded(() => void load());
-    return () => void sub.then((u) => u());
+    const subs = [events.kbReloaded(() => void load()), events.deviceRefreshed(() => void load())];
+    return () => subs.forEach((s) => void s.then((u) => u()));
   }, [load]);
 
   return { report, error };
@@ -276,13 +276,13 @@ function vt(v: ValueText | null): string {
 function statusBadge(s: FixStatus): ReactNode {
   switch (s.state) {
     case "applicable":
-      return <Badge tone="info">Can change</Badge>;
+      return <StatusIcon icon={Wrench} tone="info" label="Can be changed on this PC" />;
     case "alreadySet":
-      return <Badge tone="ok">Already set</Badge>;
+      return <StatusIcon icon={CircleCheck} tone="ok" label="Already set on this PC" />;
     case "unavailable":
-      return <Badge tone="muted">Not available here</Badge>;
+      return <StatusIcon icon={CircleSlash} tone="muted" label="Not available on this PC" />;
     case "manual":
-      return <Badge tone="muted">Manual steps</Badge>;
+      return <StatusIcon icon={ListChecks} tone="muted" label="Manual steps" />;
   }
 }
 
@@ -332,10 +332,10 @@ function FixList({
       {fixes.map((x) => (
         <li key={x.id} className="rounded-md border border-zinc-800 bg-zinc-950/40 px-3 py-2.5">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-medium text-zinc-200">{x.title}</span>
             {statusBadge(x.status)}
+            <span className="font-medium text-zinc-200">{x.title}</span>
             {x.risk !== "low" && <Badge tone={x.risk === "high" ? "bad" : "warn"}>{x.risk} risk</Badge>}
-            {x.requiresAdmin && x.status.state === "applicable" && <span className="text-xs text-zinc-500">needs admin (UAC)</span>}
+            {x.requiresAdmin && x.status.state === "applicable" && <StatusIcon icon={ShieldHalf} tone="muted" label="Needs administrator permission (Windows asks via UAC)" />}
           </div>
           {x.status.state === "applicable" && (
             <div className="mt-1 font-mono text-xs text-zinc-400">

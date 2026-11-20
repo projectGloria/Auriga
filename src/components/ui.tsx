@@ -1,4 +1,4 @@
-import { Info, TriangleAlert, X } from "lucide-react";
+import { Info, TriangleAlert, X, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import type { Tone } from "../lib/device";
 
@@ -17,6 +17,25 @@ export function Badge({ tone, children, title }: { tone: Tone; children: ReactNo
       className={`inline-flex items-center gap-1 whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset ${toneClass[tone]}`}
     >
       {children}
+    </span>
+  );
+}
+
+const toneText: Record<Tone, string> = {
+  ok: "text-emerald-400",
+  warn: "text-amber-400",
+  bad: "text-rose-400",
+  muted: "text-zinc-500",
+  info: "text-sky-400",
+};
+
+/** Compact status: a coloured icon with its meaning in the tooltip; `text`
+ * only where the detail matters (e.g. a problem code). */
+export function StatusIcon({ icon: Icon, tone, label, text }: { icon: LucideIcon; tone: Tone; label: string; text?: string }) {
+  return (
+    <span title={label} aria-label={label} role="img" className={`inline-flex items-center gap-1 whitespace-nowrap text-xs font-medium ${toneText[tone]}`}>
+      <Icon className="size-4 shrink-0" strokeWidth={2} />
+      {text}
     </span>
   );
 }
