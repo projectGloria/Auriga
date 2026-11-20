@@ -3,6 +3,7 @@
 
 mod commands;
 pub mod dump;
+mod fixes;
 
 use auriga_core::kb::{self, Kb, watch::KbWatcher};
 use auriga_core::store::Store;
@@ -19,6 +20,8 @@ pub struct AppState {
     /// Current knowledge base; swapped whole on hot reload.
     pub kb: RwLock<Arc<Kb>>,
     pub kb_watcher: Mutex<Option<KbWatcher>>,
+    /// Elevated helper for the current fix session (started on first write).
+    pub helper: Mutex<fixes::HelperSlot>,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -32,6 +35,7 @@ pub fn run() {
                 scan: Mutex::new(None),
                 kb: RwLock::new(Arc::new(Kb::default())),
                 kb_watcher: Mutex::new(None),
+                helper: Mutex::new(None),
             });
             start_kb(app.handle());
             Ok(())
@@ -44,6 +48,11 @@ pub fn run() {
             commands::list_scans,
             commands::helper_test,
             commands::get_findings,
+            fixes::preview_fix,
+            fixes::apply_fix,
+            fixes::revert_fix,
+            fixes::list_fix_history,
+            fixes::read_minidumps,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Auriga");
@@ -58,6 +67,7 @@ fn open_store(dir: Option<std::path::PathBuf>) -> (Store, Option<String>) {
     match attempt {
         Ok(s) => {
             let _ = s.recover_interrupted();
+            let _ = s.mark_pending_unknown();
             (s, None)
         }
         Err(e) => (

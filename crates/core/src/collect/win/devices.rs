@@ -13,7 +13,7 @@ use windows::Win32::Devices::DeviceAndDriverInstallation::*;
 use windows::Win32::Devices::Properties::*;
 use windows::Win32::Foundation::DEVPROPKEY;
 
-struct DevInfoSet(HDEVINFO);
+pub(crate) struct DevInfoSet(pub(crate) HDEVINFO);
 impl Drop for DevInfoSet {
     fn drop(&mut self) {
         unsafe {
@@ -22,9 +22,55 @@ impl Drop for DevInfoSet {
     }
 }
 
-struct Dev<'a> {
-    set: &'a DevInfoSet,
-    data: SP_DEVINFO_DATA,
+pub(crate) struct Dev<'a> {
+    pub(crate) set: &'a DevInfoSet,
+    pub(crate) data: SP_DEVINFO_DATA,
+}
+
+/// Opens one device by instance ID. `Ok(None)` when Windows does not know it.
+pub(crate) fn open(instance_id: &str) -> Result<Option<(DevInfoSet, SP_DEVINFO_DATA)>, String> {
+    let set = unsafe { SetupDiCreateDeviceInfoList(None, None) }
+        .map_err(|e| format!("SetupDiCreateDeviceInfoList failed: {e}"))?;
+    let set = DevInfoSet(set);
+    let id = super::util::wide(instance_id);
+    let mut data = SP_DEVINFO_DATA {
+        cbSize: size_of::<SP_DEVINFO_DATA>() as u32,
+        ..Default::default()
+    };
+    match unsafe {
+        SetupDiOpenDeviceInfoW(
+            set.0,
+            windows::core::PCWSTR(id.as_ptr()),
+            None,
+            0,
+            Some(&mut data),
+        )
+    } {
+        Ok(()) => Ok(Some((set, data))),
+        // ERROR_NO_SUCH_DEVINST, as a Win32 code or HRESULT_FROM_SETUPAPI.
+        Err(e) if matches!(e.code().0 as u32, 0xE000_020B | 0x800F_020B) => Ok(None),
+        Err(e) => Err(format!("SetupDiOpenDeviceInfo failed: {e}")),
+    }
+}
+
+/// Live re-read of one device, as the fix engine needs before and after a
+/// change. Unlike a scan, a failure to read the adapter's settings is an
+/// error here, not a warning: a fix must never act on missing data.
+pub fn read_one(instance_id: &str) -> Result<Option<DeviceRecord>, String> {
+    let Some((set, data)) = open(instance_id)? else {
+        return Ok(None);
+    };
+    let dev = Dev { set: &set, data };
+    let mut sig = SignatureChecker::new();
+    let mut warnings = Vec::new();
+    let rec = build_record(&dev, instance_id.to_string(), &mut sig, &mut warnings);
+    if let Some(w) = warnings
+        .iter()
+        .find(|w| w.source == "net" || w.source == "power")
+    {
+        return Err(w.message.clone());
+    }
+    Ok(Some(rec))
 }
 
 impl Dev<'_> {
@@ -321,9 +367,9 @@ const PDCAP_WAKE_D0: u32 = 0x10;
 const PDCAP_WAKE_D1: u32 = 0x20;
 const PDCAP_WAKE_D2: u32 = 0x40;
 const PDCAP_WAKE_D3: u32 = 0x80;
-/// ndis.h NDIS_DEVICE_DISABLE_PM: "Allow the computer to turn off this
+/// ndis.h NDIS_DEVICE_DISABLE_PM (0x8): "Allow the computer to turn off this
 /// device to save power" is unchecked when this PnPCapabilities bit is set.
-const NDIS_DEVICE_DISABLE_PM: u32 = 0x10;
+pub(crate) const NDIS_DEVICE_DISABLE_PM: u32 = 0x8;
 
 fn collect_power(
     dev: &Dev<'_>,

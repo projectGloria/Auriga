@@ -3,6 +3,13 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import type { AppInfo } from "../bindings/AppInfo";
+import type { ApplyOptions } from "../bindings/ApplyOptions";
+import type { ApplyOutcome } from "../bindings/ApplyOutcome";
+import type { FixHistoryEntry } from "../bindings/FixHistoryEntry";
+import type { FixPreview } from "../bindings/FixPreview";
+import type { MinidumpReport } from "../bindings/MinidumpReport";
+import type { RevertOutcome } from "../bindings/RevertOutcome";
+import type { ValueText } from "../bindings/ValueText";
 import type { FindingsReport } from "../bindings/FindingsReport";
 import type { KbStatus } from "../bindings/KbStatus";
 import type { HelperTestResult } from "../bindings/HelperTestResult";
@@ -21,6 +28,13 @@ export const api = {
   listScans: (limit: number) => invoke<ScanSummary[]>("list_scans", { limit }),
   helperTest: () => invoke<HelperTestResult>("helper_test"),
   findings: () => invoke<FindingsReport>("get_findings"),
+  // Fixes: the backend rebuilds each fix from the latest scan; the UI only names it.
+  previewFix: (findingKey: string, fixId: string) => invoke<FixPreview>("preview_fix", { findingKey, fixId }),
+  applyFix: (findingKey: string, fixId: string, expectedFrom: ValueText | null, options: ApplyOptions) =>
+    invoke<ApplyOutcome>("apply_fix", { findingKey, fixId, expectedFrom, options }),
+  revertFix: (id: number) => invoke<RevertOutcome>("revert_fix", { id }),
+  fixHistory: (limit: number) => invoke<FixHistoryEntry[]>("list_fix_history", { limit }),
+  readMinidumps: () => invoke<MinidumpReport>("read_minidumps"),
 };
 
 export const events = {

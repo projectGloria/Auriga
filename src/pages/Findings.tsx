@@ -7,6 +7,7 @@ import type { FixStatus } from "../bindings/FixStatus";
 import type { FixSuggestion } from "../bindings/FixSuggestion";
 import type { Severity } from "../bindings/Severity";
 import type { ValueText } from "../bindings/ValueText";
+import { FixDialog } from "../components/FixDialog";
 import { ScanControls } from "../components/ScanControls";
 import { Badge, Banner, Button, PageHeader } from "../components/ui";
 import { api, errorText, events, inTauri } from "../lib/api";
@@ -218,12 +219,12 @@ function FindingCard({ f, onNavigate }: { f: Finding; onNavigate: (page: string)
 
           {required.length > 0 && (
             <Section title={optional.length ? "Suggested changes, in order — try one, then watch" : "Suggested fix"}>
-              <FixList fixes={required} onNavigate={onNavigate} />
+              <FixList findingKey={f.key} fixes={required} onNavigate={onNavigate} />
             </Section>
           )}
           {optional.length > 0 && (
             <Section title="Optional, if the above does not help">
-              <FixList fixes={optional} onNavigate={onNavigate} />
+              <FixList findingKey={f.key} fixes={optional} onNavigate={onNavigate} />
             </Section>
           )}
 
@@ -304,8 +305,29 @@ function GuidedSteps({ steps, page, onNavigate }: { steps: string[]; page: strin
   );
 }
 
-function FixList({ fixes, onNavigate }: { fixes: FixSuggestion[]; onNavigate: (page: string) => void }) {
+function FixList({
+  findingKey,
+  fixes,
+  onNavigate,
+}: {
+  findingKey: string;
+  fixes: FixSuggestion[];
+  onNavigate: (page: string) => void;
+}) {
+  const [open, setOpen] = useState<string | null>(null);
   return (
+    <>
+    {open && (
+      <FixDialog
+        findingKey={findingKey}
+        fixId={open}
+        onClose={() => setOpen(null)}
+        onOpenHistory={() => {
+          setOpen(null);
+          onNavigate("history");
+        }}
+      />
+    )}
     <ol className="space-y-2">
       {fixes.map((x) => (
         <li key={x.id} className="rounded-md border border-zinc-800 bg-zinc-950/40 px-3 py-2.5">
@@ -332,7 +354,12 @@ function FixList({ fixes, onNavigate }: { fixes: FixSuggestion[]; onNavigate: (p
           {"guided" in x.action && <GuidedSteps {...x.action.guided} onNavigate={onNavigate} />}
           {x.status.state === "applicable" && (
             <div className="mt-2">
-              <Button variant="primary" disabled title="The fix engine (preview, restore point, apply, revert) arrives in Phase 4.">
+              <Button
+                variant="primary"
+                disabled={!inTauri || "guided" in x.action}
+                title={inTauri ? "Shows exactly what changes; nothing is written until you confirm." : "Only in the desktop app."}
+                onClick={() => setOpen(x.id)}
+              >
                 Preview & apply…
               </Button>
             </div>
@@ -340,5 +367,6 @@ function FixList({ fixes, onNavigate }: { fixes: FixSuggestion[]; onNavigate: (p
         </li>
       ))}
     </ol>
+    </>
   );
 }

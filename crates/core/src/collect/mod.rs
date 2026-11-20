@@ -7,7 +7,7 @@ use tokio_util::sync::CancellationToken;
 pub mod eventxml;
 pub mod setupapi_log;
 #[cfg(windows)]
-mod win;
+pub(crate) mod win;
 
 /// How far back event logs and setupapi.dev.log are read.
 pub const EVENT_WINDOW_DAYS: u32 = 14;

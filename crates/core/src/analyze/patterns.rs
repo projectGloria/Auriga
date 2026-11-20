@@ -75,13 +75,22 @@ fn starts_ci(s: &str, prefix: &str) -> bool {
         .is_some_and(|x| x.eq_ignore_ascii_case(prefix))
 }
 
+const WLAN_REASON_POLICY: &str = "5";
+
 pub fn classify(e: &EventRecord) -> Option<SignalKind> {
     let p = e.provider.as_str();
     let is = |name: &str| p.eq_ignore_ascii_case(name);
     let id = e.event_id;
     use SignalKind::*;
     Some(match () {
-        _ if is("Microsoft-Windows-WLAN-AutoConfig") && id == 8003 => WlanDisconnect,
+        // ReasonCode 5 is rendered as a policy turning auto-connect off: a
+        // deliberate disconnect, not a drop.
+        _ if is("Microsoft-Windows-WLAN-AutoConfig") && id == 8003 => {
+            if e.field("ReasonCode") == Some(WLAN_REASON_POLICY) {
+                return None;
+            }
+            WlanDisconnect
+        }
         _ if starts_ci(p, "netwtw") && (1..=3).contains(&e.level) => WifiDriverWarning,
         _ if is("Display") && id == 4101 => DisplayTdr,
         _ if is("Microsoft-Windows-Kernel-Power") && id == 41 => match e.field("BugcheckCode") {

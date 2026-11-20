@@ -118,6 +118,7 @@ name = "auriga-core"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "helper-ipc",
  "jsonschema",
  "notify",
  "quick-xml",
@@ -137,6 +138,7 @@ dependencies = [
 name = "auriga-helper"
 version = "0.1.0"
 dependencies = [
+ "auriga-core",
  "helper-ipc",
 ]
 
@@ -1418,6 +1420,7 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 2.0.21",
+ "ts-rs",
  "windows",
 ]
 

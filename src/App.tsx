@@ -11,6 +11,7 @@ import {
 import { useState, type ReactNode } from "react";
 import { DevicesPage } from "./pages/Devices";
 import { FindingsPage } from "./pages/Findings";
+import { FixHistoryPage } from "./pages/FixHistory";
 import { LogsPage } from "./pages/Logs";
 import { SettingsPage } from "./pages/Settings";
 import { ScanProvider, useScan } from "./lib/scan";
@@ -22,7 +23,7 @@ const NAV: { id: PageId; label: string; icon: LucideIcon; phase?: number }[] = [
   { id: "devices", label: "Devices", icon: Cpu },
   { id: "findings", label: "Findings", icon: TriangleAlert },
   { id: "updates", label: "Updates", icon: Download, phase: 5 },
-  { id: "history", label: "Fix History", icon: History, phase: 4 },
+  { id: "history", label: "Fix History", icon: History },
   { id: "logs", label: "Logs", icon: ScrollText },
   { id: "settings", label: "Settings", icon: Settings },
 ];
@@ -43,6 +44,7 @@ function Shell() {
   let body: ReactNode;
   if (page === "devices") body = <DevicesPage />;
   else if (page === "findings") body = <FindingsPage onNavigate={(p) => setPage(p as PageId)} />;
+  else if (page === "history") body = <FixHistoryPage />;
   else if (page === "logs") body = <LogsPage />;
   else if (page === "settings") body = <SettingsPage />;
   else body = <Placeholder label={current.label} phase={current.phase ?? 0} />;

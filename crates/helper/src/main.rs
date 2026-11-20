@@ -40,7 +40,8 @@ fn main() -> ExitCode {
         std::thread::spawn(move || {
             loop {
                 std::thread::sleep(Duration::from_secs(1));
-                let idle = start.elapsed().as_secs() - last.load(Ordering::Relaxed);
+                // u64::MAX = a request is running (never idle).
+                let idle = start.elapsed().as_secs().saturating_sub(last.load(Ordering::Relaxed));
                 if idle >= IDLE_TIMEOUT_SECS {
                     std::process::exit(0);
                 }
@@ -54,14 +55,51 @@ fn main() -> ExitCode {
             // App gone or protocol violation: stop.
             Err(_) => return ExitCode::SUCCESS,
         };
-        last.store(start.elapsed().as_secs(), Ordering::Relaxed);
+        last.store(u64::MAX, Ordering::Relaxed);
         let AppMessage::Request { id, op } = msg;
-        let (result, stop) = match op {
-            HelperOp::Ping { nonce } => (HelperResult::Pong { nonce }, false),
-            HelperOp::Shutdown => (HelperResult::Ok, true),
+        let stop = matches!(op, HelperOp::Shutdown);
+        let result = match op.validate() {
+            Err(message) => HelperResult::Error { message },
+            Ok(()) => dispatch(op),
         };
+        last.store(start.elapsed().as_secs(), Ordering::Relaxed);
         if write_frame(&mut pipe, &HelperMessage::Response { id, result }).is_err() || stop {
             return ExitCode::SUCCESS;
+        }
+    }
+}
+
+/// Every write re-reads the device and re-runs the checks in
+/// `auriga_core::fix::validate` inside `auriga_core::fix::win`; the request
+/// only names the device and the value.
+#[cfg(windows)]
+fn dispatch(op: helper_ipc::proto::HelperOp) -> helper_ipc::proto::HelperResult {
+    use auriga_core::fix::win;
+    use helper_ipc::proto::{HelperOp as Op, HelperResult as R};
+    let err = |message: String| R::Error { message };
+    match op {
+        Op::Ping { nonce } => R::Pong { nonce },
+        Op::Shutdown => R::Ok,
+        Op::SetAdapterProperty {
+            instance_id,
+            keyword,
+            value,
+        } => win::set_adapter_property(&instance_id, &keyword, value.as_deref())
+            .map_or_else(err, |previous| R::PropertySet { previous }),
+        Op::SetPnpCapabilities { instance_id, value } => {
+            win::set_pnp_capabilities(&instance_id, value)
+                .map_or_else(err, |previous| R::PnpSet { previous })
+        }
+        Op::RestartDevice { instance_id } => win::restart_device(&instance_id)
+            .map_or_else(err, |reboot_required| R::Restarted { reboot_required }),
+        Op::CreateRestorePoint { description } => R::RestorePoint {
+            outcome: win::create_restore_point(&description),
+        },
+        Op::RollbackDriver { instance_id } => win::rollback_driver(&instance_id)
+            .map_or_else(err, |reboot_required| R::RolledBack { reboot_required }),
+        Op::ListMinidumps => {
+            let (files, warnings) = win::list_minidumps();
+            R::Minidumps { files, warnings }
         }
     }
 }

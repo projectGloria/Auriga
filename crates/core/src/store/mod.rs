@@ -1,6 +1,7 @@
 //! SQLite persistence: scans + snapshots now; findings, fix history and the
 //! update cache are added by later migrations.
 
+use crate::fix::{FixRecord, FixState};
 use crate::snapshot::SystemSnapshot;
 use rusqlite::{Connection, OptionalExtension, params};
 use serde::{Deserialize, Serialize};
@@ -80,6 +81,18 @@ const MIGRATIONS: &[&str] = &[
         key   TEXT PRIMARY KEY,
         value TEXT NOT NULL
     );
+    "#,
+    // v2
+    r#"
+    CREATE TABLE fix_history (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        created_at TEXT NOT NULL,
+        state      TEXT NOT NULL,
+        device_id  TEXT NOT NULL,
+        rule_id    TEXT NOT NULL,
+        json       TEXT NOT NULL
+    );
+    CREATE INDEX fix_history_device ON fix_history(device_id);
     "#,
 ];
 
@@ -214,6 +227,72 @@ impl Store {
             .find(|s| s.id == id)
             .expect("scan row exists");
         Ok(Some((summary, serde_json::from_str(&json)?)))
+    }
+
+    fn state_str(s: FixState) -> Result<String> {
+        Ok(serde_json::to_value(s)?.as_str().unwrap_or("unknown").to_string())
+    }
+
+    /// Inserts the record and returns its id (the stored JSON gets the id too).
+    pub fn insert_fix(&self, r: &FixRecord) -> Result<i64> {
+        self.conn.execute(
+            "INSERT INTO fix_history (created_at, state, device_id, rule_id, json)
+             VALUES (?1, ?2, ?3, ?4, '{}')",
+            params![r.created_at, Self::state_str(r.state)?, r.device_id, r.rule_id],
+        )?;
+        let id = self.conn.last_insert_rowid();
+        let mut r = r.clone();
+        r.id = id;
+        self.update_fix(&r)?;
+        Ok(id)
+    }
+
+    pub fn update_fix(&self, r: &FixRecord) -> Result<()> {
+        self.conn.execute(
+            "UPDATE fix_history SET state = ?2, json = ?3 WHERE id = ?1",
+            params![r.id, Self::state_str(r.state)?, serde_json::to_string(r)?],
+        )?;
+        Ok(())
+    }
+
+    pub fn get_fix(&self, id: i64) -> Result<Option<FixRecord>> {
+        let json: Option<String> = self
+            .conn
+            .query_row("SELECT json FROM fix_history WHERE id = ?1", [id], |r| {
+                r.get(0)
+            })
+            .optional()?;
+        Ok(json.map(|j| serde_json::from_str(&j)).transpose()?)
+    }
+
+    /// Newest first.
+    pub fn list_fixes(&self, limit: u32) -> Result<Vec<FixRecord>> {
+        let mut st = self
+            .conn
+            .prepare("SELECT json FROM fix_history ORDER BY id DESC LIMIT ?1")?;
+        let rows = st.query_map([limit], |r| r.get::<_, String>(0))?;
+        let mut out = Vec::new();
+        for j in rows {
+            out.push(serde_json::from_str(&j?)?);
+        }
+        Ok(out)
+    }
+
+    /// Fixes left pending by a crash or kill: their outcome is unknown.
+    pub fn mark_pending_unknown(&self) -> Result<usize> {
+        let pending = self
+            .list_fixes(u32::MAX)?
+            .into_iter()
+            .filter(|r| r.state == FixState::Pending);
+        let mut n = 0;
+        for mut r in pending {
+            r.state = FixState::Unknown;
+            r.notes
+                .push("Auriga was closed before this change finished; check the current value.".into());
+            self.update_fix(&r)?;
+            n += 1;
+        }
+        Ok(n)
     }
 }
 

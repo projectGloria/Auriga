@@ -13,6 +13,7 @@ chrono.workspace = true
 tokio-util.workspace = true
 ts-rs.workspace = true
 rusqlite.workspace = true
+helper-ipc.workspace = true
 quick-xml = "0.42.0"
 serde_norway = "0.9.42"
 jsonschema = { version = "0.61.2", default-features = false }
@@ -34,6 +35,11 @@ features = [
     "Win32_Security_Cryptography_Sip",
     "Win32_Storage_FileSystem",
     "Win32_System_EventLog",
+    "Win32_System_Restore",
+    "Win32_System_Wmi",
+    "Win32_System_Com",
+    "Win32_System_Variant",
+    "Win32_System_Ole",
 ]
 
 [dev-dependencies]

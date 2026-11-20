@@ -2,11 +2,13 @@ import { ChevronDown, ChevronRight, ScrollText, Search } from "lucide-react";
 import { Fragment, useMemo, useState, type ReactNode } from "react";
 import type { EventRecord } from "../bindings/EventRecord";
 import type { LatestSnapshot } from "../bindings/LatestSnapshot";
+import type { MinidumpReport } from "../bindings/MinidumpReport";
 import type { Signal } from "../bindings/Signal";
 import type { SignalKind } from "../bindings/SignalKind";
 import { ScanControls } from "../components/ScanControls";
 import { LOG_SOURCES, WarningsBanner } from "../components/Warnings";
-import { Badge, Banner, PageHeader } from "../components/ui";
+import { Badge, Banner, Button, PageHeader } from "../components/ui";
+import { api, errorText, inTauri } from "../lib/api";
 import { ago, eventLevel, shortChannel, shortProvider, signalInfo, timelineTone, when } from "../lib/analysis";
 import { useScan } from "../lib/scan";
 
@@ -163,11 +165,81 @@ function DumpsNote({ latest }: { latest: LatestSnapshot }) {
   if (d.length === 0) return null;
   const newest = d.reduce((a, b) => ((a.modified ?? "") > (b.modified ?? "") ? a : b));
   return (
-    <p className="mt-3 text-xs text-zinc-400">
-      {d.length} crash dump file{d.length === 1 ? "" : "s"} on disk (newest {when(newest.modified)}:{" "}
-      <span className="font-mono">{newest.path}</span>). Reading their contents needs admin and arrives with the
-      opt-in helper analysis.
-    </p>
+    <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-zinc-400">
+      <p>
+        {d.length} crash dump file{d.length === 1 ? "" : "s"} on disk (newest {when(newest.modified)}:{" "}
+        <span className="font-mono">{newest.path}</span>).
+      </p>
+      <MinidumpReader />
+    </div>
+  );
+}
+
+/** Opt-in: the Minidump folder is admin-only, so the helper reads the headers (read-only). */
+function MinidumpReader() {
+  const [busy, setBusy] = useState(false);
+  const [report, setReport] = useState<MinidumpReport | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const read = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      setReport(await api.readMinidumps());
+    } catch (e) {
+      setError(errorText(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <>
+      <Button
+        disabled={!inTauri || busy}
+        title="Reads only the bugcheck code and parameters from each dump header. Needs admin (UAC); nothing is changed."
+        onClick={() => void read()}
+      >
+        {busy ? "Reading…" : "Read minidumps (admin)"}
+      </Button>
+      {error && (
+        <div className="w-full">
+          <Banner tone="bad">{error}</Banner>
+        </div>
+      )}
+      {report && (
+        <div className="w-full space-y-1">
+          {report.warnings.map((w, i) => (
+            <Banner key={i} tone="warn">
+              {w}
+            </Banner>
+          ))}
+          {report.files.length === 0 && <p>No minidump files found.</p>}
+          {report.files.length > 0 && (
+            <table className="text-xs">
+              <thead className="text-zinc-500">
+                <tr>
+                  <th className="pr-4 text-left font-normal">File</th>
+                  <th className="pr-4 text-left font-normal">Written</th>
+                  <th className="pr-4 text-left font-normal">Bugcheck</th>
+                  <th className="text-left font-normal">Parameters</th>
+                </tr>
+              </thead>
+              <tbody className="font-mono">
+                {report.files.map((f) => (
+                  <tr key={f.file}>
+                    <td className="pr-4">{f.file}</td>
+                    <td className="pr-4 font-sans">{when(f.modified)}</td>
+                    <td className="pr-4 text-zinc-200">
+                      {f.bugcheckCode != null ? "0x" + f.bugcheckCode.toString(16).toUpperCase().padStart(8, "0") : "—"}
+                    </td>
+                    <td>{f.error ? <span className="font-sans text-amber-300">{f.error}</span> : f.parameters.join(" ")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+    </>
   );
 }
 
