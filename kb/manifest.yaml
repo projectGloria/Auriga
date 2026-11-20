@@ -1,0 +1,5 @@
+# Auriga knowledge base. Rules live in rules/*.yaml (one rule per file) and are
+# validated against schema/rule.schema.json on load. Invalid files are skipped
+# and reported; the rest still load. Edits are picked up while the app runs.
+kb_version: "2026.11.1"
+schema_version: 1

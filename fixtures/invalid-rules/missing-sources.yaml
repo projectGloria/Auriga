@@ -1,0 +1,11 @@
+# Every rule must cite sources (an empty list is allowed, a missing key is not).
+id: bad.no-sources
+version: 1
+title: No sources
+severity: info
+confidence: high
+category: other
+scope: device
+match: { class: [Net] }
+summary: s
+explanation: e

@@ -123,7 +123,7 @@ pub fn classify(e: &EventRecord) -> Option<SignalKind> {
 }
 
 /// Per-kind detail value for the breakdown.
-fn detail(kind: SignalKind, e: &EventRecord) -> Option<String> {
+pub(crate) fn detail(kind: SignalKind, e: &EventRecord) -> Option<String> {
     match kind {
         SignalKind::WlanDisconnect => e.field("ReasonCode").map(str::to_string),
         SignalKind::Bugcheck => e

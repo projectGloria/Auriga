@@ -1,11 +1,12 @@
 //! PnP device + driver inventory via SetupAPI / CfgMgr32 (no PowerShell).
 
-use super::registry::{CLASS_ROOT, read_dword, read_string};
+use super::registry::{CLASS_ROOT, RegKey, read_dword, read_string};
 use super::signature::SignatureChecker;
 use super::util::{bytes_to_u16, filetime_to_utc, format_guid, from_wide, multi_sz};
 use crate::collect::{CollectError, ProgressFn};
 use crate::snapshot::{
-    DeviceRecord, DeviceStatus, DriverInfo, InstallDates, PowerInfo, SourceWarning, problem_text,
+    AdvancedProperty, DeviceRecord, DeviceStatus, DriverInfo, InstallDates, PowerInfo,
+    PropertyOption, SourceWarning, problem_text,
 };
 use tokio_util::sync::CancellationToken;
 use windows::Win32::Devices::DeviceAndDriverInstallation::*;
@@ -264,7 +265,23 @@ fn build_record(
         _ => None,
     };
 
+    let physical = matches!(enumerator.as_deref(), Some("PCI" | "USB" | "SD" | "ACPI"));
+    let advanced = match (class.as_deref(), driver_key.as_deref()) {
+        (Some("Net"), Some(key)) if physical && present => {
+            advanced_properties(key).unwrap_or_else(|e| {
+                warnings.push(SourceWarning {
+                    source: "net".into(),
+                    message: e,
+                    instance_id: Some(instance_id.clone()),
+                });
+                Vec::new()
+            })
+        }
+        _ => Vec::new(),
+    };
+
     DeviceRecord {
+        advanced,
         net_cfg_instance_id,
         name,
         description,
@@ -361,4 +378,58 @@ fn collect_power(
         info.allow_turn_off = Some(raw.unwrap_or(0) & NDIS_DEVICE_DISABLE_PM == 0);
     }
     Ok(Some(info))
+}
+
+/// Reads the driver's Advanced tab from `<class>\<NNNN>\Ndi\params\<Keyword>`
+/// (definitions) and `<class>\<NNNN>\<Keyword>` (current values). Keyword based,
+/// so it works on any display language; readable without admin.
+fn advanced_properties(driver_key: &str) -> Result<Vec<AdvancedProperty>, String> {
+    let base = format!(r"{CLASS_ROOT}\{driver_key}");
+    let Some(key) = RegKey::open(&base)? else {
+        return Ok(Vec::new());
+    };
+    let current: std::collections::HashMap<String, String> = key
+        .values()
+        .into_iter()
+        .map(|(n, v)| (n.to_ascii_lowercase(), v))
+        .collect();
+    let Some(params) = RegKey::open(&format!(r"{base}\Ndi\params"))? else {
+        return Ok(Vec::new());
+    };
+    let mut out = Vec::new();
+    for kw in params.subkeys() {
+        let path = format!(r"{base}\Ndi\params\{kw}");
+        let Some(pk) = RegKey::open(&path)? else {
+            continue;
+        };
+        let vals: std::collections::HashMap<String, String> = pk
+            .values()
+            .into_iter()
+            .map(|(n, v)| (n.to_ascii_lowercase(), v))
+            .collect();
+        let options = match RegKey::open(&format!(r"{path}\enum"))? {
+            Some(e) => e
+                .values()
+                .into_iter()
+                .filter(|(n, _)| !n.is_empty())
+                .map(|(value, label)| PropertyOption { value, label })
+                .collect(),
+            None => Vec::new(),
+        };
+        out.push(AdvancedProperty {
+            current: current.get(&kw.to_ascii_lowercase()).cloned(),
+            label: vals.get("paramdesc").cloned(),
+            kind: vals
+                .get("type")
+                .map(|t| t.to_ascii_lowercase())
+                .unwrap_or_default(),
+            default: vals.get("default").cloned(),
+            min: vals.get("min").cloned(),
+            max: vals.get("max").cloned(),
+            options,
+            keyword: kw,
+        });
+    }
+    out.sort_by_key(|p| p.keyword.to_ascii_lowercase());
+    Ok(out)
 }

@@ -1,0 +1,18 @@
+# A fix may not name an arbitrary registry path or command.
+id: bad.registry-write
+version: 1
+title: Writes any registry key
+severity: info
+confidence: low
+category: other
+scope: device
+match: { class: [Net] }
+summary: s
+explanation: e
+sources: []
+fixes:
+  - id: write
+    title: Write
+    risk: low
+    action:
+      registry: { path: 'HKLM\SOFTWARE\Foo', value: '1' }

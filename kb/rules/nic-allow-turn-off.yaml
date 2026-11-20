@@ -1,0 +1,40 @@
+id: nic.power.allow-turn-off
+version: 1
+title: Windows may power off this network adapter, and it has been dropping
+severity: info
+confidence: low
+confidence_note: >-
+  The "Allow the computer to turn off this device to save power" option can cause
+  drops after idle or resume on some adapters. On Modern Standby laptops Windows
+  manages adapter power itself, so unchecking it often makes no difference. It is
+  cheap to try and easy to undo.
+category: power
+scope: device
+match:
+  class: [Net]
+  enumerator: [PCI, USB]
+when:
+  all:
+    - power: { allow_turn_off: true }
+    - any:
+        - signal: { kind: wlanDisconnect, min: 3, days: 14, device: self }
+        - signal: { kind: deviceStartFailure, min: 1, days: 14, device: self }
+summary: "{device} is allowed to be powered off to save energy, and it has had connection or start problems."
+explanation: |
+  On the adapter's Power Management tab, "Allow the computer to turn off this
+  device to save power" is checked. Windows stores this as a bit in the
+  adapter's PnPCapabilities registry value. When it is checked, Windows can
+  power the adapter down when idle. Some drivers do not come back cleanly,
+  which shows up as disconnects or start failures after idle or resume.
+sources:
+  - title: Microsoft — Power management on network adapters
+    url: https://learn.microsoft.com/en-us/troubleshoot/windows-client/networking/power-management-on-network-adapter
+    kind: microsoft
+fixes:
+  - id: disallow-turn-off
+    title: Uncheck "Allow the computer to turn off this device to save power"
+    why: Keeps the adapter powered while the PC is on.
+    tradeoff: Slightly higher idle power use. The adapter needs a restart (or a reboot) for this to take effect.
+    risk: low
+    action:
+      device_power: { allow_turn_off: false }

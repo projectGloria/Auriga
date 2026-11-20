@@ -1,0 +1,94 @@
+id: intel.ax201.disconnects
+version: 1
+title: Intel Wi-Fi 6 AX201 drops the connection repeatedly
+severity: warning
+confidence: medium
+confidence_note: >-
+  The settings below are Intel-documented options, and many AX201 owners report
+  that they reduce disconnects. Intel does not publish them as a fix for this
+  symptom, and the cause can also be the router, interference or the driver
+  version. Try one change at a time and watch whether disconnects drop.
+category: network
+scope: device
+match:
+  class: [Net]
+  # AX201 is the CNVi companion RF on Comet/Ice/Tiger/Jasper Lake platforms.
+  # The device ID is the platform's CNVi controller; the subsystem ID names
+  # the AX201 module (Intel-branded SKUs). Killer-branded modules are excluded.
+  hardware_id:
+    - '^PCI\\VEN_8086&DEV_(02F0|06F0|34F0|43F0|A0F0|4DF0)&SUBSYS_(0070|0074|0078|007C|0310|2074|4070|6074)8086'
+  service: ['^netwtw']
+when:
+  signal: { kind: wlanDisconnect, min: 3, days: 14, device: self }
+summary: "{device} disconnected from Wi-Fi several times in the last two weeks."
+explanation: |
+  Windows logged repeated WLAN-AutoConfig 8003 "disconnected" events for this
+  adapter. With the AX201, the commonly reported triggers are its power-save
+  behaviour (MIMO power save), Wi-Fi 6 (802.11ax) negotiation with some
+  routers, and 40 MHz channels on the crowded 2.4 GHz band, which the adapter
+  also shares with Bluetooth.
+
+  Each setting below exists in the driver's Advanced tab and is described by
+  Intel. They are listed from most to least commonly helpful. Change one,
+  use the PC normally for a day or two, then check the Logs page. If the
+  disconnects continue with all of them applied, the router or the driver
+  version is a more likely cause.
+sources:
+  - title: Intel — Advanced Intel Wireless Adapter Settings (article 000005585)
+    url: https://www.intel.com/content/www/us/en/support/articles/000005585/wireless.html
+    kind: vendor
+  - title: Owner reports on the Intel Community forums and Microsoft Q&A about AX201 disconnects
+    kind: community
+fixes:
+  - id: mimo-no-smps
+    title: Set MIMO Power Save Mode to "No SMPS"
+    why: Stops the adapter from idling one antenna to save power, which is a common cause of drops.
+    tradeoff: Slightly higher Wi-Fi power use on battery.
+    risk: low
+    action:
+      adapter_property: { keyword: MIMOPowerSaveMode, value: "3" }
+  - id: mode-80211ac
+    title: Set 802.11n/ac/ax Wireless Mode to 802.11ac
+    why: Avoids Wi-Fi 6 (802.11ax) negotiation problems with some routers and firmware.
+    tradeoff: >-
+      Turns off Wi-Fi 6 features (OFDMA, 1024-QAM, target wake time). On a Wi-Fi 6
+      router, peak speed and efficiency drop. Wi-Fi 5 and older routers are unaffected.
+    risk: low
+    action:
+      adapter_property: { keyword: IEEE11nMode, value: "2" }
+  - id: width24-20mhz
+    title: Set 2.4 GHz Channel Width to "20 MHz Only"
+    why: 40 MHz channels on 2.4 GHz overlap neighbours and Bluetooth, which raises interference.
+    tradeoff: Lower peak speed on 2.4 GHz networks only. 5 GHz is unaffected.
+    risk: low
+    action:
+      adapter_property: { keyword: ChannelWidth24, value: "0" }
+  - id: packet-coalescing-off
+    title: Turn Packet Coalescing off
+    why: Some reports link packet coalescing to stalls after idle periods.
+    tradeoff: Slightly more wake-ups and power use while idle.
+    risk: low
+    optional: true
+    action:
+      adapter_property: { keyword: "*PacketCoalescing", value: "0" }
+  - id: gtk-rekey-off
+    title: Turn "GTK rekeying for WoWLAN" off
+    why: Only matters if disconnects happen around sleep and resume.
+    tradeoff: >-
+      The adapter no longer renews group keys while the PC sleeps, so wake-on-LAN over
+      Wi-Fi may stop working until it reconnects.
+    risk: low
+    optional: true
+    action:
+      adapter_property: { keyword: "*PMWiFiRekeyOffload", value: "0" }
+  - id: check-driver
+    title: Check the driver version
+    risk: low
+    optional: true
+    action:
+      guided:
+        page: updates
+        steps:
+          - If the disconnects started right after a driver update, roll back to the previous driver.
+          - Otherwise, check the Updates page for a newer Intel Wi-Fi driver from Intel or Windows Update.
+          - Updating the router's firmware also fixes many 802.11ax compatibility issues.

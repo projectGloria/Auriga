@@ -1,8 +1,9 @@
-//! Dev tool: `cargo run -p auriga-core --example collect -- [snapshot.json] [preview.json]`
+//! Dev tool: `cargo run -p auriga-core --example collect -- [snapshot.json] [preview.json] [findings.json]`
 //!
 //! `preview.json` has the `LatestSnapshot` shape; put it at
 //! `public/dev-latest.json` to render real data in a plain browser
-//! (`npm run dev`, dev builds only).
+//! (`npm run dev`, dev builds only). `findings.json` (a `FindingsReport`
+//! from the repo KB) goes at `public/dev-findings.json`.
 use auriga_core::collect::collect_snapshot;
 use tokio_util::sync::CancellationToken;
 
@@ -107,6 +108,40 @@ fn main() {
             "analysis": auriga_core::analyze::analyze(&snap),
         });
         std::fs::write(&p, serde_json::to_string(&preview).unwrap()).unwrap();
+        println!("wrote {p}");
+    }
+    let kb = auriga_core::kb::load_dir(
+        &std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../kb"),
+    );
+    let findings = auriga_core::kb::eval(&snap, &a, &kb.rules);
+    println!(
+        "kb: {} rules, {} errors; {} findings",
+        kb.rules.len(),
+        kb.errors.len(),
+        findings.len()
+    );
+    for e in &kb.errors {
+        println!("  kb error {}: {}", e.file, e.message);
+    }
+    for f in &findings {
+        println!(
+            "  [{:?}/{:?}] {} — {}",
+            f.severity, f.confidence, f.rule_id, f.summary
+        );
+        for e in &f.evidence {
+            println!("      • {e}");
+        }
+        for x in &f.fixes {
+            println!("      fix {}: {:?}", x.id, x.status);
+        }
+    }
+    if let Some(p) = std::env::args().nth(3) {
+        let report = auriga_core::kb::FindingsReport {
+            kb: kb.status(),
+            scan_collected_at: Some(snap.collected_at.clone()),
+            findings,
+        };
+        std::fs::write(&p, serde_json::to_string(&report).unwrap()).unwrap();
         println!("wrote {p}");
     }
 }

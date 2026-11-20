@@ -142,6 +142,7 @@ pub(crate) mod test_util {
             install: Default::default(),
             power: None,
             net_cfg_instance_id: guid.map(Into::into),
+            advanced: vec![],
         }
     }
 

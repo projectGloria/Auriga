@@ -1,0 +1,35 @@
+id: display.tdr.repeated
+version: 1
+title: The display driver stopped responding and recovered several times
+severity: warning
+confidence: medium
+confidence_note: >-
+  Display 4101 means Windows reset a hung GPU driver (TDR). Repeated resets are a
+  reliable sign of a problem. The cause can be the driver, overclocking or
+  undervolting, heat, or the hardware.
+category: display
+scope: system
+when:
+  signal: { kind: displayTdr, min: 3, days: 7, device: any }
+summary: The graphics driver was reset by Windows at least 3 times in a week.
+explanation: |
+  Windows logs Display event 4101 when a graphics driver stops responding
+  for about two seconds and Windows resets it (timeout detection and
+  recovery). A few in a year is normal. Several in a week points to an
+  unstable driver or settings.
+sources:
+  - title: Microsoft — Timeout detection and recovery (TDR)
+    url: https://learn.microsoft.com/en-us/windows-hardware/drivers/display/timeout-detection-and-recovery
+    kind: microsoft
+fixes:
+  - id: gpu-steps
+    title: Stabilise the graphics driver
+    risk: low
+    action:
+      guided:
+        page: updates
+        steps:
+          - Undo any GPU overclock or undervolt, and close tuning tools.
+          - If the resets began after a driver update, roll back the graphics driver.
+          - Otherwise check the Updates page for the GPU vendor's current driver.
+          - Check GPU temperatures under load.

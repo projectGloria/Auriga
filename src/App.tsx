@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { DevicesPage } from "./pages/Devices";
+import { FindingsPage } from "./pages/Findings";
 import { LogsPage } from "./pages/Logs";
 import { SettingsPage } from "./pages/Settings";
 import { ScanProvider, useScan } from "./lib/scan";
@@ -19,7 +20,7 @@ type PageId = "dashboard" | "devices" | "findings" | "updates" | "history" | "lo
 const NAV: { id: PageId; label: string; icon: LucideIcon; phase?: number }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, phase: 6 },
   { id: "devices", label: "Devices", icon: Cpu },
-  { id: "findings", label: "Findings", icon: TriangleAlert, phase: 3 },
+  { id: "findings", label: "Findings", icon: TriangleAlert },
   { id: "updates", label: "Updates", icon: Download, phase: 5 },
   { id: "history", label: "Fix History", icon: History, phase: 4 },
   { id: "logs", label: "Logs", icon: ScrollText },
@@ -41,6 +42,7 @@ function Shell() {
 
   let body: ReactNode;
   if (page === "devices") body = <DevicesPage />;
+  else if (page === "findings") body = <FindingsPage onNavigate={(p) => setPage(p as PageId)} />;
   else if (page === "logs") body = <LogsPage />;
   else if (page === "settings") body = <SettingsPage />;
   else body = <Placeholder label={current.label} phase={current.phase ?? 0} />;

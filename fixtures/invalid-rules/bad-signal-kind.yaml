@@ -1,0 +1,11 @@
+id: bad.signal
+version: 1
+title: Unknown signal
+severity: warning
+confidence: low
+category: other
+scope: system
+when: { signal: { kind: cosmicRay, min: 1 } }
+summary: s
+explanation: e
+sources: []

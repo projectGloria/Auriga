@@ -9,3 +9,4 @@
 snapshot*.json
 !fixtures/**/*.json
 /public/dev-latest.json
+/public/dev-findings.json

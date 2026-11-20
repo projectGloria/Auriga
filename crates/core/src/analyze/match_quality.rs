@@ -286,6 +286,7 @@ mod tests {
             install: Default::default(),
             power: None,
             net_cfg_instance_id: None,
+            advanced: vec![],
         }
     }
 

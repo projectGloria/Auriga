@@ -1,0 +1,37 @@
+id: device.problem-code
+version: 1
+title: A connected device is not working
+severity: problem
+confidence: high
+confidence_note: >-
+  Windows itself reports this device as failed (a Device Manager error code).
+  The likely cause depends on the code. The steps below are the general first steps.
+category: driver
+scope: device
+match:
+  include_not_present: false
+when:
+  # Excludes 22 (disabled by you), 45 (not connected) and 14 (restart pending).
+  problem_code: [1, 3, 10, 12, 18, 19, 24, 28, 31, 32, 37, 39, 40, 41, 43, 48, 51, 52, 54, 57]
+summary: "{device} reports a Device Manager error."
+explanation: |
+  The device is connected, but Windows reports a problem code for it. Code 28
+  means no driver is installed. Code 52 means the driver signature could not be
+  verified. Codes 10 and 43 mean the driver or the device failed to start.
+  Code 51 means it is waiting for another device, and often clears after a
+  restart.
+sources:
+  - title: Microsoft — Device Manager error messages
+    url: https://learn.microsoft.com/en-us/windows-hardware/drivers/install/device-manager-error-messages
+    kind: microsoft
+fixes:
+  - id: general-steps
+    title: General steps
+    risk: low
+    action:
+      guided:
+        page: devices
+        steps:
+          - Restart the PC once. Codes 51 and some cases of 10 clear on their own.
+          - If the device stopped working after a driver update, roll back that driver.
+          - Check the Updates page for a driver from the device vendor or Windows Update.

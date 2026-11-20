@@ -7,8 +7,9 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 /// v2: events, setupapi sections, dump files, `net_cfg_instance_id`.
+/// v3: network adapter advanced properties.
 /// New fields are `serde(default)` so older stored snapshots still load.
-pub const SNAPSHOT_SCHEMA_VERSION: u32 = 2;
+pub const SNAPSHOT_SCHEMA_VERSION: u32 = 3;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
@@ -168,6 +169,76 @@ pub struct DeviceRecord {
     /// used to tie WLAN/NDIS events (which log `InterfaceGuid`) to the device.
     #[serde(default)]
     pub net_cfg_instance_id: Option<String>,
+    /// Network adapters only: the driver's "Advanced" tab, read from
+    /// `<driver key>\Ndi\params`. Keyed by registry keyword (locale independent).
+    #[serde(default)]
+    pub advanced: Vec<AdvancedProperty>,
+}
+
+impl DeviceRecord {
+    pub fn advanced(&self, keyword: &str) -> Option<&AdvancedProperty> {
+        self.advanced
+            .iter()
+            .find(|p| p.keyword.eq_ignore_ascii_case(keyword))
+    }
+}
+
+/// One advanced driver property. Values are the raw registry strings
+/// (e.g. `"3"`); labels are the driver's own text (display only).
+#[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct AdvancedProperty {
+    /// Registry keyword, e.g. `MIMOPowerSaveMode`, `*PacketCoalescing`.
+    pub keyword: String,
+    /// `ParamDesc`, e.g. "MIMO Power Save Mode".
+    pub label: Option<String>,
+    /// `type` from `Ndi\params`: enum, int, long, word, dword, edit.
+    pub kind: String,
+    pub default: Option<String>,
+    /// Value stored in the driver key; `None` means the driver uses `default`.
+    pub current: Option<String>,
+    /// Allowed values for `enum` properties, in registry order.
+    pub options: Vec<PropertyOption>,
+    pub min: Option<String>,
+    pub max: Option<String>,
+}
+
+impl AdvancedProperty {
+    /// What the driver actually uses: the stored value, else the default.
+    pub fn effective(&self) -> Option<&str> {
+        self.current.as_deref().or(self.default.as_deref())
+    }
+
+    pub fn option_label(&self, value: &str) -> Option<&str> {
+        self.options
+            .iter()
+            .find(|o| o.value == value)
+            .map(|o| o.label.as_str())
+    }
+
+    /// True when `value` is allowed: a listed enum value, or a number in range.
+    pub fn accepts(&self, value: &str) -> bool {
+        if self.kind.eq_ignore_ascii_case("enum") {
+            return self.options.iter().any(|o| o.value == value);
+        }
+        if self.kind.eq_ignore_ascii_case("edit") {
+            return true;
+        }
+        let Ok(v) = value.parse::<i64>() else {
+            return false;
+        };
+        let num = |s: &Option<String>| s.as_deref().and_then(|m| m.parse::<i64>().ok());
+        num(&self.min).is_none_or(|lo| v >= lo) && num(&self.max).is_none_or(|hi| v <= hi)
+    }
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct PropertyOption {
+    pub value: String,
+    pub label: String,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]

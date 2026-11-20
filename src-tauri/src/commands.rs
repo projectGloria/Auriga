@@ -1,6 +1,7 @@
 use crate::AppState;
 use auriga_core::analyze::{Analysis, analyze};
 use auriga_core::collect::{CollectError, collect_snapshot};
+use auriga_core::kb::{self, FindingsReport};
 use auriga_core::snapshot::{ScanProgress, SystemSnapshot};
 use auriga_core::store::{ScanStatus, ScanSummary};
 use serde::Serialize;
@@ -11,6 +12,7 @@ use ts_rs::TS;
 
 pub const EV_PROGRESS: &str = "scan://progress";
 pub const EV_FINISHED: &str = "scan://finished";
+pub const EV_KB_RELOADED: &str = "kb://reloaded";
 
 type CmdResult<T> = Result<T, String>;
 
@@ -157,6 +159,25 @@ pub fn get_latest_snapshot(state: State<'_, AppState>) -> CmdResult<Option<Lates
             analysis: analyze(&snapshot),
             snapshot,
         }))
+}
+
+/// Evaluates the current KB over the latest completed scan.
+#[tauri::command]
+pub fn get_findings(state: State<'_, AppState>) -> CmdResult<FindingsReport> {
+    let kb = state.kb.read().unwrap().clone();
+    let latest = state.store.lock().unwrap().latest_snapshot().map_err(err)?;
+    let (scan_collected_at, findings) = match latest {
+        Some((_, snap)) => (
+            Some(snap.collected_at.clone()),
+            kb::eval_snapshot(&snap, &kb.rules),
+        ),
+        None => (None, vec![]),
+    };
+    Ok(FindingsReport {
+        kb: kb.status(),
+        scan_collected_at,
+        findings,
+    })
 }
 
 #[tauri::command]

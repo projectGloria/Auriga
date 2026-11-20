@@ -1,0 +1,46 @@
+id: intel.wifi.disconnects
+version: 1
+title: Intel Wi-Fi adapter drops the connection repeatedly
+severity: warning
+confidence: low
+confidence_note: >-
+  This is a generic rule for any Intel Wi-Fi adapter. Disconnects have many causes,
+  so it only points at the usual first steps. The AX201 has its own, more specific rule.
+category: network
+scope: device
+match:
+  class: [Net]
+  hardware_id: ['^PCI\\VEN_8086&']
+  exclude_hardware_id:
+    - '^PCI\\VEN_8086&DEV_(02F0|06F0|34F0|43F0|A0F0|4DF0)&SUBSYS_(0070|0074|0078|007C|0310|2074|4070|6074)8086'
+  service: ['^netwtw']
+when:
+  signal: { kind: wlanDisconnect, min: 5, days: 7, device: self }
+summary: "{device} disconnected from Wi-Fi at least 5 times in the last week."
+explanation: |
+  Windows logged repeated WLAN-AutoConfig 8003 "disconnected" events for this
+  Intel adapter. The Logs page shows the disconnect reason codes. Codes that
+  point to the access point, such as deauthentication, suggest the router; codes
+  that point to the local side suggest the driver or power management.
+sources:
+  - title: Intel — Advanced Intel Wireless Adapter Settings (article 000005585)
+    url: https://www.intel.com/content/www/us/en/support/articles/000005585/wireless.html
+    kind: vendor
+fixes:
+  - id: mimo-no-smps
+    title: Set MIMO Power Save Mode to "No SMPS" (if the driver offers it)
+    why: Stops the adapter from idling one antenna to save power.
+    tradeoff: Slightly higher Wi-Fi power use on battery.
+    risk: low
+    action:
+      adapter_property: { keyword: MIMOPowerSaveMode, value: "3" }
+  - id: check-driver
+    title: Check the driver and router
+    risk: low
+    action:
+      guided:
+        page: updates
+        steps:
+          - Check the Updates page for a newer Intel Wi-Fi driver.
+          - If the drops began after a driver update, roll back to the previous driver.
+          - Update the router's firmware, and test on another network if you can.

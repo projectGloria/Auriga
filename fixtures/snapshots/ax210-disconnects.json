@@ -1,0 +1,1401 @@
+{
+  "schemaVersion": 3,
+  "collectedAt": "2026-11-20T12:00:00Z",
+  "machine": {
+    "osBuild": "26100",
+    "osDisplayVersion": "24H2",
+    "manufacturer": "Fixture",
+    "model": "Fixture laptop"
+  },
+  "devices": [
+    {
+      "advanced": [
+        {
+          "current": "0",
+          "default": "0",
+          "keyword": "*DeviceSleepOnDisconnect",
+          "kind": "enum",
+          "label": "Sleep on WoWLAN Disconnect",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Enabled",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": "1",
+          "default": "1",
+          "keyword": "*PacketCoalescing",
+          "kind": "enum",
+          "label": "Packet Coalescing",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Enabled",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": "1",
+          "default": "1",
+          "keyword": "*PMARPOffload",
+          "kind": "enum",
+          "label": "ARP offload for WoWLAN",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Enabled",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": "1",
+          "default": "1",
+          "keyword": "*PMNSOffload",
+          "kind": "enum",
+          "label": "NS offload for WoWLAN",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Enabled",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": "1",
+          "default": "1",
+          "keyword": "*PMWiFiRekeyOffload",
+          "kind": "enum",
+          "label": "GTK rekeying for WoWLAN",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Enabled",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": "1",
+          "default": "1",
+          "keyword": "*WakeOnMagicPacket",
+          "kind": "enum",
+          "label": "Wake on Magic Packet",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Enabled",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": "1",
+          "default": "1",
+          "keyword": "*WakeOnPattern",
+          "kind": "enum",
+          "label": "Wake on Pattern Match",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Enabled",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": "1",
+          "default": "1",
+          "keyword": "ChannelWidth24",
+          "kind": "enum",
+          "label": "Channel Width for 2.4GHz",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "20 MHz Only",
+              "value": "0"
+            },
+            {
+              "label": "Auto",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": "1",
+          "default": "1",
+          "keyword": "ChannelWidth52",
+          "kind": "enum",
+          "label": "Channel Width for 5GHz",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "20 MHz Only",
+              "value": "0"
+            },
+            {
+              "label": "Auto",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": "0",
+          "default": "0",
+          "keyword": "CtsToItself",
+          "kind": "enum",
+          "label": "Mixed Mode Protection",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "RTS/CTS Enabled",
+              "value": "0"
+            },
+            {
+              "label": "CTS-to-self Enabled",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": "0",
+          "default": "0",
+          "keyword": "EnableChLoad4ApSelection",
+          "kind": "enum",
+          "label": "Channel-Load usage for AP Selection",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Enabled",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": "0",
+          "default": "0",
+          "keyword": "FatChannelIntolerant",
+          "kind": "enum",
+          "label": "Fat Channel Intolerant",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Enabled",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": "100",
+          "default": "100",
+          "keyword": "IbssTxPower",
+          "kind": "enum",
+          "label": "Transmit Power",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "1. Lowest",
+              "value": "0"
+            },
+            {
+              "label": "2. Medium-low",
+              "value": "25"
+            },
+            {
+              "label": "3. Medium",
+              "value": "50"
+            },
+            {
+              "label": "4. Medium-High",
+              "value": "75"
+            },
+            {
+              "label": "5. Highest",
+              "value": "100"
+            }
+          ]
+        },
+        {
+          "current": "2",
+          "default": "3",
+          "keyword": "IEEE11nMode",
+          "kind": "enum",
+          "label": "802.11n/ac/ax Wireless Mode",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "1. Disabled",
+              "value": "0"
+            },
+            {
+              "label": "2. 802.11n",
+              "value": "1"
+            },
+            {
+              "label": "3. 802.11ac",
+              "value": "2"
+            },
+            {
+              "label": "4. 802.11ax",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "current": "3",
+          "default": "0",
+          "keyword": "MIMOPowerSaveMode",
+          "kind": "enum",
+          "label": "MIMO Power Save Mode",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Auto SMPS",
+              "value": "0"
+            },
+            {
+              "label": "Static SMPS",
+              "value": "1"
+            },
+            {
+              "label": "Dynamic SMPS",
+              "value": "2"
+            },
+            {
+              "label": "No SMPS",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "current": "2",
+          "default": "2",
+          "keyword": "RoamAggressiveness",
+          "kind": "enum",
+          "label": "Roaming Aggressiveness",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "1. Lowest",
+              "value": "0"
+            },
+            {
+              "label": "2. Medium-low",
+              "value": "1"
+            },
+            {
+              "label": "3. Medium",
+              "value": "2"
+            },
+            {
+              "label": "4. Medium-High",
+              "value": "3"
+            },
+            {
+              "label": "5. Highest",
+              "value": "4"
+            }
+          ]
+        },
+        {
+          "current": "0",
+          "default": "0",
+          "keyword": "RoamingPreferredBandType",
+          "kind": "enum",
+          "label": "Preferred Band",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "1. No Preference",
+              "value": "0"
+            },
+            {
+              "label": "2. Prefer 2.4GHz band",
+              "value": "1"
+            },
+            {
+              "label": "3. Prefer 5GHz band",
+              "value": "2"
+            }
+          ]
+        },
+        {
+          "current": "0",
+          "default": "0",
+          "keyword": "ThroughputBoosterEnabled",
+          "kind": "enum",
+          "label": "Throughput Booster",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Enabled",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": "0",
+          "default": "0",
+          "keyword": "uAPSDSupport",
+          "kind": "enum",
+          "label": "U-APSD support",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Enabled",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": "34",
+          "default": "34",
+          "keyword": "WirelessMode",
+          "kind": "enum",
+          "label": "802.11a/b/g Wireless Mode",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "1. 5GHz  802.11a",
+              "value": "17"
+            },
+            {
+              "label": "2. 2.4GHz 802.11b",
+              "value": "0"
+            },
+            {
+              "label": "3. 2.4GHz 802.11g",
+              "value": "16"
+            },
+            {
+              "label": "4. 2.4GHz 802.11b/g",
+              "value": "32"
+            },
+            {
+              "label": "5. Dual Band 802.11a/g",
+              "value": "18"
+            },
+            {
+              "label": "6. Dual Band 802.11a/b/g",
+              "value": "34"
+            }
+          ]
+        }
+      ],
+      "class": "Net",
+      "classGuid": "{4d36e972-e325-11ce-bfc1-08002be10318}",
+      "compatibleIds": [
+        "PCI\\VEN_8086&DEV_43F0&REV_11",
+        "PCI\\VEN_8086&DEV_43F0",
+        "PCI\\VEN_8086&CC_028000",
+        "PCI\\VEN_8086&CC_0280",
+        "PCI\\VEN_8086",
+        "PCI\\CC_028000&DT_9",
+        "PCI\\CC_028000",
+        "PCI\\CC_0280&DT_9",
+        "PCI\\CC_0280"
+      ],
+      "description": "Intel(R) Wi-Fi 6E AX210 160MHz",
+      "driver": {
+        "date": "2026-09-16",
+        "description": "Intel(R) Wi-Fi 6 AX201 160MHz",
+        "driverKey": "{4d36e972-e325-11ce-bfc1-08002be10318}\\0000",
+        "infName": "oem48.inf",
+        "infSection": "Install_GEN_QSR_HrP2_201_AX_2x2_WinT",
+        "matchingDeviceId": "PCI\\VEN_8086&DEV_43F0&SUBSYS_00748086",
+        "provider": "Intel",
+        "rank": 16515073,
+        "signature": {
+          "catalog": "C:\\WINDOWS\\system32\\CatRoot\\{F750E6C3-38EE-11D1-85E5-00C04FC295EE}\\oem48.cat",
+          "detail": null,
+          "signer": "Microsoft Windows Hardware Compatibility Publisher",
+          "status": "valid"
+        },
+        "version": "24.80.0.2"
+      },
+      "enumerator": "PCI",
+      "hardwareIds": [
+        "PCI\\VEN_8086&DEV_2725&SUBSYS_00248086&REV_1A",
+        "PCI\\VEN_8086&DEV_2725&SUBSYS_00248086",
+        "PCI\\VEN_8086&DEV_2725&CC_028000",
+        "PCI\\VEN_8086&DEV_2725&CC_0280"
+      ],
+      "install": {
+        "firstInstallDate": "2026-11-19T23:08:42.802067100+00:00",
+        "installDate": "2026-11-19T13:00:29.376+00:00",
+        "lastArrivalDate": "2026-11-20T11:11:43.354505800+00:00"
+      },
+      "instanceId": "PCI\\VEN_8086&DEV_2725&SUBSYS_00248086&REV_1A\\4&2B1E7F3C&0&00E4",
+      "location": "PCI bus 0, device 20, function 3",
+      "manufacturer": "Intel Corporation",
+      "name": "Intel(R) Wi-Fi 6E AX210 160MHz",
+      "netCfgInstanceId": "{1D3B2F40-77A1-4C6E-9E21-5A0C6F7E8B11}",
+      "power": {
+        "allowTurnOff": true,
+        "currentState": "D0",
+        "pnpCapabilitiesRaw": 0,
+        "supportedStates": [
+          "D0",
+          "D3"
+        ],
+        "wakeFrom": [
+          "D3"
+        ]
+      },
+      "present": true,
+      "service": "Netwtw10",
+      "status": {
+        "available": true,
+        "devnodeFlags": 25174026,
+        "disabled": false,
+        "problemCode": null,
+        "problemText": null,
+        "started": true
+      }
+    },
+    {
+      "advanced": [
+        {
+          "current": "3",
+          "default": "3",
+          "keyword": "*FlowControl",
+          "kind": "enum",
+          "label": "Flow Control",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Rx & Tx Enabled",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "current": "1",
+          "default": "1",
+          "keyword": "*InterruptModeration",
+          "kind": "enum",
+          "label": "Interrupt Moderation",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Enabled",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": "3",
+          "default": "3",
+          "keyword": "*IPChecksumOffloadIPv4",
+          "kind": "enum",
+          "label": "IPv4 Checksum Offload",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Tx Enabled",
+              "value": "1"
+            },
+            {
+              "label": "Rx Enabled",
+              "value": "2"
+            },
+            {
+              "label": "Rx & Tx Enabled",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "current": "1514",
+          "default": "1514",
+          "keyword": "*JumboPacket",
+          "kind": "enum",
+          "label": "Jumbo Frame",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "1514"
+            },
+            {
+              "label": "4088 Bytes",
+              "value": "4088"
+            },
+            {
+              "label": "9014 Bytes",
+              "value": "9014"
+            }
+          ]
+        },
+        {
+          "current": "1",
+          "default": "1",
+          "keyword": "*LsoV2IPv4",
+          "kind": "enum",
+          "label": "Large Send Offload v2 (IPv4)",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Enabled",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": "1",
+          "default": "1",
+          "keyword": "*LsoV2IPv6",
+          "kind": "enum",
+          "label": "Large Send Offload v2 (IPv6)",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Enabled",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": "1",
+          "default": "1",
+          "keyword": "*PMARPOffload",
+          "kind": "enum",
+          "label": "ARP Offload",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Enabled",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": "1",
+          "default": "1",
+          "keyword": "*PMNSOffload",
+          "kind": "enum",
+          "label": "NS Offload",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Enabled",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": "3",
+          "default": "3",
+          "keyword": "*PriorityVlanTag",
+          "kind": "enum",
+          "label": "Priority & VLAN",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Priority & VLAN Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Priority Enabled",
+              "value": "1"
+            },
+            {
+              "label": "VLAN Enabled",
+              "value": "2"
+            },
+            {
+              "label": "Priority & VLAN Enabled",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "current": "512",
+          "default": "512",
+          "keyword": "*ReceiveBuffers",
+          "kind": "int",
+          "label": "Receive Buffers",
+          "max": "512",
+          "min": "32",
+          "options": []
+        },
+        {
+          "current": "0",
+          "default": "0",
+          "keyword": "*RscIPv4",
+          "kind": "enum",
+          "label": "Recv Segment Coalescing (IPv4)",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Enabled",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": "0",
+          "default": "0",
+          "keyword": "*RscIPv6",
+          "kind": "enum",
+          "label": "Recv Segment Coalescing (IPv6)",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Enabled",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": "0",
+          "default": "0",
+          "keyword": "*SpeedDuplex",
+          "kind": "enum",
+          "label": "Speed & Duplex",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Auto Negotiation",
+              "value": "0"
+            },
+            {
+              "label": "10 Mbps Half Duplex",
+              "value": "1"
+            },
+            {
+              "label": "10 Mbps Full Duplex",
+              "value": "2"
+            },
+            {
+              "label": "100 Mbps Half Duplex",
+              "value": "3"
+            },
+            {
+              "label": "100 Mbps Full Duplex",
+              "value": "4"
+            },
+            {
+              "label": "1.0 Gbps Full Duplex",
+              "value": "6"
+            }
+          ]
+        },
+        {
+          "current": "3",
+          "default": "3",
+          "keyword": "*TCPChecksumOffloadIPv4",
+          "kind": "enum",
+          "label": "TCP Checksum Offload (IPv4)",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Tx Enabled",
+              "value": "1"
+            },
+            {
+              "label": "Rx Enabled",
+              "value": "2"
+            },
+            {
+              "label": "Rx & Tx Enabled",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "current": "3",
+          "default": "3",
+          "keyword": "*TCPChecksumOffloadIPv6",
+          "kind": "enum",
+          "label": "TCP Checksum Offload (IPv6)",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Tx Enabled",
+              "value": "1"
+            },
+            {
+              "label": "Rx Enabled",
+              "value": "2"
+            },
+            {
+              "label": "Rx & Tx Enabled",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "current": "128",
+          "default": "128",
+          "keyword": "*TransmitBuffers",
+          "kind": "int",
+          "label": "Transmit Buffers",
+          "max": "128",
+          "min": "32",
+          "options": []
+        },
+        {
+          "current": "3",
+          "default": "3",
+          "keyword": "*UDPChecksumOffloadIPv4",
+          "kind": "enum",
+          "label": "UDP Checksum Offload (IPv4)",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Tx Enabled",
+              "value": "1"
+            },
+            {
+              "label": "Rx Enabled",
+              "value": "2"
+            },
+            {
+              "label": "Rx & Tx Enabled",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "current": "3",
+          "default": "3",
+          "keyword": "*UDPChecksumOffloadIPv6",
+          "kind": "enum",
+          "label": "UDP Checksum Offload (IPv6)",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Tx Enabled",
+              "value": "1"
+            },
+            {
+              "label": "Rx Enabled",
+              "value": "2"
+            },
+            {
+              "label": "Rx & Tx Enabled",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "current": "1",
+          "default": "1",
+          "keyword": "*WakeOnMagicPacket",
+          "kind": "enum",
+          "label": "Wake on Magic Packet",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Enabled",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": "1",
+          "default": "1",
+          "keyword": "*WakeOnPattern",
+          "kind": "enum",
+          "label": "Wake on pattern match",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Enabled",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": null,
+          "default": "",
+          "keyword": "NetworkAddress",
+          "kind": "edit",
+          "label": "Network Address",
+          "max": null,
+          "min": null,
+          "options": []
+        },
+        {
+          "current": "0",
+          "default": "0",
+          "keyword": "RegVlanid",
+          "kind": "int",
+          "label": "VLAN ID",
+          "max": "4094",
+          "min": "0",
+          "options": []
+        },
+        {
+          "current": "1",
+          "default": "1",
+          "keyword": "S5WakeOnLan",
+          "kind": "enum",
+          "label": "Shutdown Wake-On-Lan",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "Disabled",
+              "value": "0"
+            },
+            {
+              "label": "Enabled",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "current": "0",
+          "default": "0",
+          "keyword": "WolShutdownLinkSpeed",
+          "kind": "enum",
+          "label": "WOL & Shutdown Link Speed",
+          "max": null,
+          "min": null,
+          "options": [
+            {
+              "label": "10 Mbps First",
+              "value": "0"
+            },
+            {
+              "label": "100 Mbps First",
+              "value": "1"
+            },
+            {
+              "label": "Not Speed Down",
+              "value": "2"
+            }
+          ]
+        }
+      ],
+      "class": "Net",
+      "classGuid": "{4d36e972-e325-11ce-bfc1-08002be10318}",
+      "compatibleIds": [
+        "PCI\\VEN_10EC&DEV_8168&REV_15",
+        "PCI\\VEN_10EC&DEV_8168",
+        "PCI\\VEN_10EC&CC_020000",
+        "PCI\\VEN_10EC&CC_0200",
+        "PCI\\VEN_10EC",
+        "PCI\\CC_020000&DT_0",
+        "PCI\\CC_020000",
+        "PCI\\CC_0200&DT_0",
+        "PCI\\CC_0200"
+      ],
+      "description": "Realtek PCIe GbE Family Controller",
+      "driver": {
+        "date": "2017-08-10",
+        "description": "Realtek PCIe GbE Family Controller",
+        "driverKey": "{4d36e972-e325-11ce-bfc1-08002be10318}\\0001",
+        "infName": "rtcx21x64.inf",
+        "infSection": "RTL8168H.ndi.NT",
+        "matchingDeviceId": "PCI\\VEN_10EC&DEV_8168&SUBSYS_12EA1462&REV_15",
+        "provider": "Microsoft",
+        "rank": 16715776,
+        "signature": {
+          "catalog": "C:\\WINDOWS\\system32\\CatRoot\\{F750E6C3-38EE-11D1-85E5-00C04FC295EE}\\Microsoft-Windows-Ethernet-Client-Realtek-Rtcx21x64-FOD-Package~31bf3856ad364e35~amd64~~10.0.26100.1742.cat",
+          "detail": null,
+          "signer": "Microsoft Windows",
+          "status": "valid"
+        },
+        "version": "1.0.0.14"
+      },
+      "enumerator": "PCI",
+      "hardwareIds": [
+        "PCI\\VEN_10EC&DEV_8168&SUBSYS_12EA1462&REV_15",
+        "PCI\\VEN_10EC&DEV_8168&SUBSYS_12EA1462",
+        "PCI\\VEN_10EC&DEV_8168&CC_020000",
+        "PCI\\VEN_10EC&DEV_8168&CC_0200"
+      ],
+      "install": {
+        "firstInstallDate": "2026-11-19T23:08:43.687924+00:00",
+        "installDate": "2026-11-19T23:08:43.881+00:00",
+        "lastArrivalDate": "2026-11-20T11:11:43.455950600+00:00"
+      },
+      "instanceId": "PCI\\VEN_10EC&DEV_8168&SUBSYS_12EA1462&REV_15\\01000000684CE00000",
+      "location": "PCI bus 3, device 0, function 0",
+      "manufacturer": "Realtek",
+      "name": "Realtek PCIe GbE Family Controller",
+      "netCfgInstanceId": "{8221BADD-8880-4553-850A-3BC2C04D4521}",
+      "power": {
+        "allowTurnOff": true,
+        "currentState": "D0",
+        "pnpCapabilitiesRaw": null,
+        "supportedStates": [
+          "D0",
+          "D1",
+          "D2",
+          "D3"
+        ],
+        "wakeFrom": [
+          "D3"
+        ]
+      },
+      "present": true,
+      "service": "rtcx21",
+      "status": {
+        "available": true,
+        "devnodeFlags": 25174026,
+        "disabled": false,
+        "problemCode": null,
+        "problemText": null,
+        "started": true
+      }
+    }
+  ],
+  "events": [
+    {
+      "channel": "Microsoft-Windows-WLAN-AutoConfig/Operational",
+      "provider": "Microsoft-Windows-WLAN-AutoConfig",
+      "eventId": 8003,
+      "level": 4,
+      "time": "2026-11-20T11:00:00Z",
+      "recordId": 1000,
+      "data": [
+        {
+          "name": "InterfaceGuid",
+          "value": "{1D3B2F40-77A1-4C6E-9E21-5A0C6F7E8B11}"
+        },
+        {
+          "name": "InterfaceDescription",
+          "value": "Wi-Fi adapter"
+        },
+        {
+          "name": "ConnectionMode",
+          "value": "Automatic connection with a profile"
+        },
+        {
+          "name": "ProfileName",
+          "value": "HomeNet"
+        },
+        {
+          "name": "SSID",
+          "value": "HomeNet"
+        },
+        {
+          "name": "BSSType",
+          "value": "Infrastructure"
+        },
+        {
+          "name": "ReasonCode",
+          "value": "7"
+        },
+        {
+          "name": "ConnectionId",
+          "value": "10"
+        }
+      ],
+      "message": null
+    },
+    {
+      "channel": "Microsoft-Windows-WLAN-AutoConfig/Operational",
+      "provider": "Microsoft-Windows-WLAN-AutoConfig",
+      "eventId": 8003,
+      "level": 4,
+      "time": "2026-11-20T09:00:00Z",
+      "recordId": 1001,
+      "data": [
+        {
+          "name": "InterfaceGuid",
+          "value": "{1D3B2F40-77A1-4C6E-9E21-5A0C6F7E8B11}"
+        },
+        {
+          "name": "InterfaceDescription",
+          "value": "Wi-Fi adapter"
+        },
+        {
+          "name": "ConnectionMode",
+          "value": "Automatic connection with a profile"
+        },
+        {
+          "name": "ProfileName",
+          "value": "HomeNet"
+        },
+        {
+          "name": "SSID",
+          "value": "HomeNet"
+        },
+        {
+          "name": "BSSType",
+          "value": "Infrastructure"
+        },
+        {
+          "name": "ReasonCode",
+          "value": "4"
+        },
+        {
+          "name": "ConnectionId",
+          "value": "11"
+        }
+      ],
+      "message": null
+    },
+    {
+      "channel": "Microsoft-Windows-WLAN-AutoConfig/Operational",
+      "provider": "Microsoft-Windows-WLAN-AutoConfig",
+      "eventId": 8003,
+      "level": 4,
+      "time": "2026-11-20T03:00:00Z",
+      "recordId": 1002,
+      "data": [
+        {
+          "name": "InterfaceGuid",
+          "value": "{1D3B2F40-77A1-4C6E-9E21-5A0C6F7E8B11}"
+        },
+        {
+          "name": "InterfaceDescription",
+          "value": "Wi-Fi adapter"
+        },
+        {
+          "name": "ConnectionMode",
+          "value": "Automatic connection with a profile"
+        },
+        {
+          "name": "ProfileName",
+          "value": "HomeNet"
+        },
+        {
+          "name": "SSID",
+          "value": "HomeNet"
+        },
+        {
+          "name": "BSSType",
+          "value": "Infrastructure"
+        },
+        {
+          "name": "ReasonCode",
+          "value": "7"
+        },
+        {
+          "name": "ConnectionId",
+          "value": "12"
+        }
+      ],
+      "message": null
+    },
+    {
+      "channel": "Microsoft-Windows-WLAN-AutoConfig/Operational",
+      "provider": "Microsoft-Windows-WLAN-AutoConfig",
+      "eventId": 8003,
+      "level": 4,
+      "time": "2026-11-19T10:00:00Z",
+      "recordId": 1003,
+      "data": [
+        {
+          "name": "InterfaceGuid",
+          "value": "{1D3B2F40-77A1-4C6E-9E21-5A0C6F7E8B11}"
+        },
+        {
+          "name": "InterfaceDescription",
+          "value": "Wi-Fi adapter"
+        },
+        {
+          "name": "ConnectionMode",
+          "value": "Automatic connection with a profile"
+        },
+        {
+          "name": "ProfileName",
+          "value": "HomeNet"
+        },
+        {
+          "name": "SSID",
+          "value": "HomeNet"
+        },
+        {
+          "name": "BSSType",
+          "value": "Infrastructure"
+        },
+        {
+          "name": "ReasonCode",
+          "value": "4"
+        },
+        {
+          "name": "ConnectionId",
+          "value": "13"
+        }
+      ],
+      "message": null
+    },
+    {
+      "channel": "Microsoft-Windows-WLAN-AutoConfig/Operational",
+      "provider": "Microsoft-Windows-WLAN-AutoConfig",
+      "eventId": 8003,
+      "level": 4,
+      "time": "2026-11-18T10:00:00Z",
+      "recordId": 1004,
+      "data": [
+        {
+          "name": "InterfaceGuid",
+          "value": "{1D3B2F40-77A1-4C6E-9E21-5A0C6F7E8B11}"
+        },
+        {
+          "name": "InterfaceDescription",
+          "value": "Wi-Fi adapter"
+        },
+        {
+          "name": "ConnectionMode",
+          "value": "Automatic connection with a profile"
+        },
+        {
+          "name": "ProfileName",
+          "value": "HomeNet"
+        },
+        {
+          "name": "SSID",
+          "value": "HomeNet"
+        },
+        {
+          "name": "BSSType",
+          "value": "Infrastructure"
+        },
+        {
+          "name": "ReasonCode",
+          "value": "7"
+        },
+        {
+          "name": "ConnectionId",
+          "value": "14"
+        }
+      ],
+      "message": null
+    },
+    {
+      "channel": "Microsoft-Windows-WLAN-AutoConfig/Operational",
+      "provider": "Microsoft-Windows-WLAN-AutoConfig",
+      "eventId": 8003,
+      "level": 4,
+      "time": "2026-11-16T18:00:00Z",
+      "recordId": 1005,
+      "data": [
+        {
+          "name": "InterfaceGuid",
+          "value": "{1D3B2F40-77A1-4C6E-9E21-5A0C6F7E8B11}"
+        },
+        {
+          "name": "InterfaceDescription",
+          "value": "Wi-Fi adapter"
+        },
+        {
+          "name": "ConnectionMode",
+          "value": "Automatic connection with a profile"
+        },
+        {
+          "name": "ProfileName",
+          "value": "HomeNet"
+        },
+        {
+          "name": "SSID",
+          "value": "HomeNet"
+        },
+        {
+          "name": "BSSType",
+          "value": "Infrastructure"
+        },
+        {
+          "name": "ReasonCode",
+          "value": "4"
+        },
+        {
+          "name": "ConnectionId",
+          "value": "15"
+        }
+      ],
+      "message": null
+    },
+    {
+      "channel": "Microsoft-Windows-WLAN-AutoConfig/Operational",
+      "provider": "Microsoft-Windows-WLAN-AutoConfig",
+      "eventId": 8003,
+      "level": 4,
+      "time": "2026-11-14T06:00:00Z",
+      "recordId": 1006,
+      "data": [
+        {
+          "name": "InterfaceGuid",
+          "value": "{1D3B2F40-77A1-4C6E-9E21-5A0C6F7E8B11}"
+        },
+        {
+          "name": "InterfaceDescription",
+          "value": "Wi-Fi adapter"
+        },
+        {
+          "name": "ConnectionMode",
+          "value": "Automatic connection with a profile"
+        },
+        {
+          "name": "ProfileName",
+          "value": "HomeNet"
+        },
+        {
+          "name": "SSID",
+          "value": "HomeNet"
+        },
+        {
+          "name": "BSSType",
+          "value": "Infrastructure"
+        },
+        {
+          "name": "ReasonCode",
+          "value": "7"
+        },
+        {
+          "name": "ConnectionId",
+          "value": "16"
+        }
+      ],
+      "message": null
+    }
+  ],
+  "setupapi": [],
+  "dumps": [],
+  "eventWindowDays": 30,
+  "warnings": []
+}

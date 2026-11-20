@@ -1,0 +1,12 @@
+# System-scope rules have no device, so device conditions are invalid.
+id: bad.system-property
+version: 1
+title: System rule reading a device property
+severity: info
+confidence: low
+category: other
+scope: system
+when: { property: { keyword: MIMOPowerSaveMode, equals: '0' } }
+summary: s
+explanation: e
+sources: []

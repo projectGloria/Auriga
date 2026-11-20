@@ -14,6 +14,10 @@ tokio-util.workspace = true
 ts-rs.workspace = true
 rusqlite.workspace = true
 quick-xml = "0.42.0"
+serde_norway = "0.9.42"
+jsonschema = { version = "0.61.2", default-features = false }
+regex = "1.13.2"
+notify = "8.2.2"
 
 [target.'cfg(windows)'.dependencies.windows]
 workspace = true
