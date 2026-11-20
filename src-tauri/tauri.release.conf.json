@@ -1,0 +1,8 @@
+{
+  "bundle": {
+    "resources": {
+      "../kb/": "kb/",
+      "../target/release/auriga-helper.exe": "auriga-helper.exe"
+    }
+  }
+}

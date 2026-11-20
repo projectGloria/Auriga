@@ -74,7 +74,7 @@ jobs:
 
       - name: Build Tauri NSIS installer
         shell: pwsh
-        run: npx tauri build
+        run: npx tauri build --config src-tauri/tauri.release.conf.json
 
       - name: Stage release artifacts
         shell: pwsh
