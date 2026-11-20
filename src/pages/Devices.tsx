@@ -10,17 +10,22 @@ import {
 import { ArrowDown, ArrowUp, Cpu, Search } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import type { DeviceRecord } from "../bindings/DeviceRecord";
+import type { MatchAssessment } from "../bindings/MatchAssessment";
 import { DeviceDrawer } from "../components/DeviceDrawer";
 import { ScanControls } from "../components/ScanControls";
+import { LOG_SOURCES, WarningsBanner } from "../components/Warnings";
 import { Badge, Banner, PageHeader } from "../components/ui";
+import { levelLabel, levelTone, matchLabel } from "../lib/analysis";
 import { day, deviceState, installed, searchText, signatureLabel, signatureTone } from "../lib/device";
 import { useScan } from "../lib/scan";
 
-type StatusFilter = "all" | "problems" | "disabled" | "unsigned";
+type StatusFilter = "all" | "problems" | "disabled" | "unsigned" | "match";
 
 const col = createColumnHelper<DeviceRecord>();
 
-const columns = [
+const levelRank = { bad: 0, warn: 1, info: 2, good: 3 } as const;
+
+const makeColumns = (matches: Map<string, MatchAssessment>) => [
   col.accessor("name", {
     header: "Device",
     cell: (c) => (
@@ -69,6 +74,22 @@ const columns = [
       );
     },
   }),
+  col.accessor((d) => matches.get(d.instanceId) ?? null, {
+    id: "match",
+    header: "Match",
+    sortingFn: (a, b) =>
+      levelRank[matches.get(a.original.instanceId)?.level ?? "good"] -
+      levelRank[matches.get(b.original.instanceId)?.level ?? "good"],
+    cell: (c) => {
+      const m = c.getValue();
+      if (!m || m.kind.kind === "none") return <span className="text-zinc-600">—</span>;
+      return (
+        <Badge tone={levelTone[m.level]} title={[matchLabel(m), ...m.notes].join("\n")}>
+          {levelLabel[m.level]}
+        </Badge>
+      );
+    },
+  }),
   col.accessor((d) => day(installed(d)), {
     id: "installed",
     header: "Installed",
@@ -88,6 +109,11 @@ export function DevicesPage() {
 
   const snap = latest?.snapshot;
   const all = useMemo(() => snap?.devices ?? [], [snap]);
+  const matches = useMemo(
+    () => new Map((latest?.analysis.matches ?? []).map((m) => [m.instanceId, m])),
+    [latest],
+  );
+  const columns = useMemo(() => makeColumns(matches), [matches]);
   const haystacks = useMemo(() => new Map(all.map((d) => [d.instanceId, searchText(d)])), [all]);
   const classes = useMemo(
     () => [...new Set(all.filter((d) => showGhosts || d.present).map((d) => d.class ?? ""))].filter(Boolean).sort(),
@@ -102,9 +128,10 @@ export function DevicesPage() {
       if (status === "problems" && d.status.problemCode == null) return false;
       if (status === "disabled" && !d.status.disabled) return false;
       if (status === "unsigned" && (!d.driver || d.driver.signature.status === "valid")) return false;
+      if (status === "match" && !["warn", "bad"].includes(matches.get(d.instanceId)?.level ?? "good")) return false;
       return !q || (haystacks.get(d.instanceId) ?? "").includes(q);
     });
-  }, [all, showGhosts, cls, status, query, haystacks]);
+  }, [all, showGhosts, cls, status, query, haystacks, matches]);
 
   const table = useReactTable({
     data: rows,
@@ -119,7 +146,7 @@ export function DevicesPage() {
 
   const present = all.filter((d) => d.present).length;
   const problems = all.filter((d) => d.present && d.status.problemCode != null).length;
-  const warnings = snap?.warnings ?? [];
+  const warnings = (snap?.warnings ?? []).filter((w) => !LOG_SOURCES.includes(w.source));
 
   return (
     <div className="flex h-full flex-col">
@@ -149,7 +176,7 @@ export function DevicesPage() {
             {notice}
           </Banner>
         )}
-        {warnings.length > 0 && <WarningsBanner warnings={warnings} />}
+        <WarningsBanner warnings={warnings} rest="The rest of the inventory is complete." />
       </div>
 
       {!snap ? (
@@ -179,6 +206,7 @@ export function DevicesPage() {
               <option value="problems">Has a problem code</option>
               <option value="disabled">Disabled</option>
               <option value="unsigned">Signature not valid</option>
+              <option value="match">Driver match needs a look</option>
             </select>
             <label className="ml-1 flex select-none items-center gap-2 text-sm text-zinc-300">
               <input type="checkbox" checked={showGhosts} onChange={(e) => setShowGhosts(e.target.checked)} className="accent-sky-500" />
@@ -190,14 +218,15 @@ export function DevicesPage() {
           <div className="min-h-0 flex-1 overflow-auto px-6 pb-6">
             <table className="w-full table-fixed border-separate border-spacing-0 text-sm">
               <colgroup>
-                <col className="w-[27%]" />
-                <col className="w-[10%]" />
+                <col className="w-[25%]" />
                 <col className="w-[9%]" />
-                <col className="w-[13%]" />
-                <col className="w-[13%]" />
-                <col className="w-[9.5%]" />
                 <col className="w-[8.5%]" />
-                <col className="w-[10%]" />
+                <col className="w-[12.5%]" />
+                <col className="w-[12.5%]" />
+                <col className="w-[9%]" />
+                <col className="w-[8%]" />
+                <col className="w-[7%]" />
+                <col className="w-[8.5%]" />
               </colgroup>
               <thead className="sticky top-0 z-10 bg-zinc-950">
                 {table.getHeaderGroups().map((hg) => (
@@ -244,30 +273,15 @@ export function DevicesPage() {
         </>
       )}
 
-      {selected && <DeviceDrawer device={selected} onClose={closeDrawer} />}
-    </div>
-  );
-}
-
-function WarningsBanner({ warnings }: { warnings: { source: string; message: string; instanceId: string | null }[] }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <Banner tone="warn">
-      <button className="text-left" onClick={() => setOpen((o) => !o)}>
-        Some data could not be read ({warnings.length} warning{warnings.length === 1 ? "" : "s"}). The rest of the
-        inventory is complete. <span className="underline">{open ? "Hide" : "Details"}</span>
-      </button>
-      {open && (
-        <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto font-mono text-xs">
-          {warnings.map((w, i) => (
-            <li key={i}>
-              [{w.source}] {w.message}
-              {w.instanceId && <span className="text-amber-300/70"> — {w.instanceId}</span>}
-            </li>
-          ))}
-        </ul>
+      {selected && latest && (
+        <DeviceDrawer
+          device={selected}
+          match={matches.get(selected.instanceId) ?? null}
+          latest={latest}
+          onClose={closeDrawer}
+        />
       )}
-    </Banner>
+    </div>
   );
 }
 

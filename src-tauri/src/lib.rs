@@ -53,7 +53,9 @@ fn open_store(dir: Option<std::path::PathBuf>) -> (Store, Option<String>) {
         }
         Err(e) => (
             Store::open_in_memory().expect("in-memory sqlite"),
-            Some(format!("History database unavailable ({e}); results won't be kept after exit.")),
+            Some(format!(
+                "History database unavailable ({e}); results won't be kept after exit."
+            )),
         ),
     }
 }

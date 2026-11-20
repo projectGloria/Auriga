@@ -110,7 +110,8 @@ impl Store {
     fn migrate(&mut self) -> Result<()> {
         let current: usize = self
             .conn
-            .pragma_query_value(None, "user_version", |r| r.get::<_, i64>(0))? as usize;
+            .pragma_query_value(None, "user_version", |r| r.get::<_, i64>(0))?
+            as usize;
         for (i, sql) in MIGRATIONS.iter().enumerate().skip(current) {
             let tx = self.conn.transaction()?;
             tx.execute_batch(sql)?;
@@ -129,7 +130,10 @@ impl Store {
     pub fn begin_scan(&self) -> Result<i64> {
         self.conn.execute(
             "INSERT INTO scans (started_at, status) VALUES (?1, ?2)",
-            params![chrono::Utc::now().to_rfc3339(), ScanStatus::Running.as_str()],
+            params![
+                chrono::Utc::now().to_rfc3339(),
+                ScanStatus::Running.as_str()
+            ],
         )?;
         Ok(self.conn.last_insert_rowid())
     }
@@ -223,9 +227,15 @@ mod tests {
             schema_version: SNAPSHOT_SCHEMA_VERSION,
             collected_at: "2026-01-01T00:00:00+00:00".into(),
             machine: MachineInfo::default(),
-            devices: vec![],
-            warnings: vec![],
+            ..Default::default()
         }
+    }
+
+    #[test]
+    fn v1_snapshot_json_still_loads() {
+        let v1 = r#"{"schemaVersion":1,"collectedAt":"2026-01-01T00:00:00Z","machine":{},"devices":[],"warnings":[]}"#;
+        let s: SystemSnapshot = serde_json::from_str(v1).unwrap();
+        assert!(s.events.is_empty() && s.setupapi.is_empty() && s.event_window_days == 0);
     }
 
     #[test]
@@ -244,11 +254,15 @@ mod tests {
         let mut s = Store::open_in_memory().unwrap();
         assert!(s.latest_snapshot().unwrap().is_none());
         let a = s.begin_scan().unwrap();
-        s.finish_scan(a, ScanStatus::Completed, Some(&snap()), None).unwrap();
+        s.finish_scan(a, ScanStatus::Completed, Some(&snap()), None)
+            .unwrap();
         let b = s.begin_scan().unwrap();
         s.finish_scan(b, ScanStatus::Cancelled, None, None).unwrap();
         let (sum, _) = s.latest_snapshot().unwrap().unwrap();
-        assert_eq!(sum.id, a, "cancelled scan must not replace last good snapshot");
+        assert_eq!(
+            sum.id, a,
+            "cancelled scan must not replace last good snapshot"
+        );
         assert_eq!(s.list_scans(10).unwrap().len(), 2);
     }
 

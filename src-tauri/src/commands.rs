@@ -1,4 +1,5 @@
 use crate::AppState;
+use auriga_core::analyze::{Analysis, analyze};
 use auriga_core::collect::{CollectError, collect_snapshot};
 use auriga_core::snapshot::{ScanProgress, SystemSnapshot};
 use auriga_core::store::{ScanStatus, ScanSummary};
@@ -42,6 +43,8 @@ pub struct ScanFinished {
 pub struct LatestSnapshot {
     pub summary: ScanSummary,
     pub snapshot: SystemSnapshot,
+    /// Computed on load (pure, cheap), never stored.
+    pub analysis: Analysis,
 }
 
 #[derive(Serialize, TS)]
@@ -104,17 +107,28 @@ pub fn start_scan(app: AppHandle, state: State<'_, AppState>) -> CmdResult<i64> 
             Err(CollectError::Cancelled) => (ScanStatus::Cancelled, None, None),
             Err(CollectError::Fatal(e)) => (ScanStatus::Failed, None, Some(e)),
         };
-        let save = state
-            .store
-            .lock()
-            .unwrap()
-            .finish_scan(id, status, snap.as_ref(), error.as_deref());
+        let save =
+            state
+                .store
+                .lock()
+                .unwrap()
+                .finish_scan(id, status, snap.as_ref(), error.as_deref());
         let (status, error) = match save {
             Ok(()) => (status, error),
-            Err(e) => (ScanStatus::Failed, Some(format!("could not save scan: {e}"))),
+            Err(e) => (
+                ScanStatus::Failed,
+                Some(format!("could not save scan: {e}")),
+            ),
         };
         *state.scan.lock().unwrap() = None;
-        let _ = app.emit(EV_FINISHED, ScanFinished { scan_id: id, status, error });
+        let _ = app.emit(
+            EV_FINISHED,
+            ScanFinished {
+                scan_id: id,
+                status,
+                error,
+            },
+        );
     });
     Ok(id)
 }
@@ -138,12 +152,21 @@ pub fn get_latest_snapshot(state: State<'_, AppState>) -> CmdResult<Option<Lates
         .unwrap()
         .latest_snapshot()
         .map_err(err)?
-        .map(|(summary, snapshot)| LatestSnapshot { summary, snapshot }))
+        .map(|(summary, snapshot)| LatestSnapshot {
+            summary,
+            analysis: analyze(&snapshot),
+            snapshot,
+        }))
 }
 
 #[tauri::command]
 pub fn list_scans(state: State<'_, AppState>, limit: u32) -> CmdResult<Vec<ScanSummary>> {
-    state.store.lock().unwrap().list_scans(limit.min(500)).map_err(err)
+    state
+        .store
+        .lock()
+        .unwrap()
+        .list_scans(limit.min(500))
+        .map_err(err)
 }
 
 /// Launches the helper with a UAC prompt, pings it once and shuts it down.

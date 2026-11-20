@@ -8,3 +8,4 @@
 .vite
 snapshot*.json
 !fixtures/**/*.json
+/public/dev-latest.json

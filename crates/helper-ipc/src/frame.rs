@@ -48,7 +48,10 @@ mod tests {
     #[test]
     fn roundtrip() {
         let mut buf = Vec::new();
-        let m = AppMessage::Request { id: 7, op: HelperOp::Ping { nonce: 42 } };
+        let m = AppMessage::Request {
+            id: 7,
+            op: HelperOp::Ping { nonce: 42 },
+        };
         write_frame(&mut buf, &m).unwrap();
         let back: AppMessage = read_frame(&mut Cursor::new(buf)).unwrap();
         assert_eq!(back, m);

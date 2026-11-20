@@ -1,6 +1,6 @@
 //! PnP device + driver inventory via SetupAPI / CfgMgr32 (no PowerShell).
 
-use super::registry::{CLASS_ROOT, read_dword};
+use super::registry::{CLASS_ROOT, read_dword, read_string};
 use super::signature::SignatureChecker;
 use super::util::{bytes_to_u16, filetime_to_utc, format_guid, from_wide, multi_sz};
 use crate::collect::{CollectError, ProgressFn};
@@ -77,7 +77,8 @@ impl Dev<'_> {
 
     fn u32(&self, key: &DEVPROPKEY) -> Option<u32> {
         let (ty, b) = self.raw(key)?;
-        (ty == DEVPROP_TYPE_UINT32 && b.len() >= 4).then(|| u32::from_le_bytes([b[0], b[1], b[2], b[3]]))
+        (ty == DEVPROP_TYPE_UINT32 && b.len() >= 4)
+            .then(|| u32::from_le_bytes([b[0], b[1], b[2], b[3]]))
     }
 
     fn bool(&self, key: &DEVPROPKEY) -> Option<bool> {
@@ -233,18 +234,38 @@ fn build_record(
         inf_name,
     });
 
-    let power = collect_power(dev, class.as_deref(), enumerator.as_deref(), driver_key.as_deref())
-        .map_err(|e| {
-            warnings.push(SourceWarning {
-                source: "power".into(),
-                message: e,
-                instance_id: Some(instance_id.clone()),
-            })
+    let power = collect_power(
+        dev,
+        class.as_deref(),
+        enumerator.as_deref(),
+        driver_key.as_deref(),
+    )
+    .map_err(|e| {
+        warnings.push(SourceWarning {
+            source: "power".into(),
+            message: e,
+            instance_id: Some(instance_id.clone()),
         })
-        .ok()
-        .flatten();
+    })
+    .ok()
+    .flatten();
+
+    let net_cfg_instance_id = match (class.as_deref(), driver_key.as_deref()) {
+        (Some("Net"), Some(key)) => {
+            read_string(&format!(r"{CLASS_ROOT}\{key}"), "NetCfgInstanceId").unwrap_or_else(|e| {
+                warnings.push(SourceWarning {
+                    source: "net".into(),
+                    message: e,
+                    instance_id: Some(instance_id.clone()),
+                });
+                None
+            })
+        }
+        _ => None,
+    };
 
     DeviceRecord {
+        net_cfg_instance_id,
         name,
         description,
         class,
@@ -258,7 +279,9 @@ fn build_record(
         status,
         driver,
         install: InstallDates {
-            install_date: dev.filetime(&DEVPKEY_Device_InstallDate).map(|d| d.to_rfc3339()),
+            install_date: dev
+                .filetime(&DEVPKEY_Device_InstallDate)
+                .map(|d| d.to_rfc3339()),
             first_install_date: dev
                 .filetime(&DEVPKEY_Device_FirstInstallDate)
                 .map(|d| d.to_rfc3339()),
@@ -308,7 +331,12 @@ fn collect_power(
             .collect::<Vec<_>>()
     };
     let mut info = PowerInfo {
-        supported_states: pick(&[(PDCAP_D0, "D0"), (PDCAP_D1, "D1"), (PDCAP_D2, "D2"), (PDCAP_D3, "D3")]),
+        supported_states: pick(&[
+            (PDCAP_D0, "D0"),
+            (PDCAP_D1, "D1"),
+            (PDCAP_D2, "D2"),
+            (PDCAP_D3, "D3"),
+        ]),
         wake_from: pick(&[
             (PDCAP_WAKE_D0, "D0"),
             (PDCAP_WAKE_D1, "D1"),

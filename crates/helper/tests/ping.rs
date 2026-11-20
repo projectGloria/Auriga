@@ -13,7 +13,10 @@ fn ping_roundtrip_and_shutdown() {
     let mut s = HelperSession::launch(exe, LaunchMode::Unelevated).expect("launch");
     assert!(s.is_alive());
     for nonce in [1u64, 0xDEAD_BEEF, u64::MAX] {
-        assert_eq!(s.request(HelperOp::Ping { nonce }).unwrap(), HelperResult::Pong { nonce });
+        assert_eq!(
+            s.request(HelperOp::Ping { nonce }).unwrap(),
+            HelperResult::Pong { nonce }
+        );
     }
     assert_eq!(s.shutdown(), Some(0), "helper should exit cleanly");
 }
@@ -21,5 +24,8 @@ fn ping_roundtrip_and_shutdown() {
 #[test]
 fn missing_helper_binary_is_reported() {
     let r = HelperSession::launch(Path::new(r"C:\does\not\exist.exe"), LaunchMode::Elevated);
-    assert!(matches!(r, Err(helper_ipc::win::IpcError::HelperMissing(_))));
+    assert!(matches!(
+        r,
+        Err(helper_ipc::win::IpcError::HelperMissing(_))
+    ));
 }

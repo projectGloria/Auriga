@@ -13,6 +13,7 @@ chrono.workspace = true
 tokio-util.workspace = true
 ts-rs.workspace = true
 rusqlite.workspace = true
+quick-xml = "0.42.0"
 
 [target.'cfg(windows)'.dependencies.windows]
 workspace = true
@@ -28,6 +29,7 @@ features = [
     "Win32_Security_Cryptography_Catalog",
     "Win32_Security_Cryptography_Sip",
     "Win32_Storage_FileSystem",
+    "Win32_System_EventLog",
 ]
 
 [dev-dependencies]

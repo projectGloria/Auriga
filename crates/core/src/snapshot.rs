@@ -6,9 +6,11 @@
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-pub const SNAPSHOT_SCHEMA_VERSION: u32 = 1;
+/// v2: events, setupapi sections, dump files, `net_cfg_instance_id`.
+/// New fields are `serde(default)` so older stored snapshots still load.
+pub const SNAPSHOT_SCHEMA_VERSION: u32 = 2;
 
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct SystemSnapshot {
@@ -17,8 +19,107 @@ pub struct SystemSnapshot {
     pub collected_at: String,
     pub machine: MachineInfo,
     pub devices: Vec<DeviceRecord>,
+    /// Event log entries of interest, newest first, within `event_window_days`.
+    #[serde(default)]
+    pub events: Vec<EventRecord>,
+    /// Parsed sections of `%windir%\INF\setupapi.dev.log`, newest first.
+    #[serde(default)]
+    pub setupapi: Vec<SetupApiSection>,
+    /// Crash dump files (metadata only; contents need admin).
+    #[serde(default)]
+    pub dumps: Vec<DumpFile>,
+    #[serde(default)]
+    pub event_window_days: u32,
     /// Non-fatal problems while collecting (access denied, missing data, ...).
     pub warnings: Vec<SourceWarning>,
+}
+
+/// One Windows event, from its XML rendering (locale independent). Rules
+/// match on `channel`/`provider`/`event_id`/`data`, never on `message`.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct EventRecord {
+    pub channel: String,
+    pub provider: String,
+    pub event_id: u32,
+    /// 1 critical, 2 error, 3 warning, 4 information, 0/5 other.
+    pub level: u8,
+    /// RFC 3339, UTC.
+    pub time: String,
+    #[ts(type = "number")]
+    pub record_id: u64,
+    /// `<EventData>`/`<UserData>` values in document order. `name` is `None`
+    /// for classic providers that log unnamed `<Data>` items.
+    pub data: Vec<EventField>,
+    /// Rendered message in the OS display language (display only).
+    pub message: Option<String>,
+}
+
+impl EventRecord {
+    /// Case-insensitive lookup of a named data field.
+    pub fn field(&self, name: &str) -> Option<&str> {
+        self.data
+            .iter()
+            .find(|f| {
+                f.name
+                    .as_deref()
+                    .is_some_and(|n| n.eq_ignore_ascii_case(name))
+            })
+            .map(|f| f.value.as_str())
+    }
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct EventField {
+    pub name: Option<String>,
+    pub value: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub enum SetupApiStatus {
+    Success,
+    Failure,
+    /// Section has no `Exit status` line (still running or truncated log).
+    #[default]
+    Unknown,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct SetupApiSection {
+    /// Text inside `>>>  [...]`, e.g. `Device Install (Hardware initiated) - PCI\VEN_...`.
+    pub title: String,
+    /// Device instance ID when the title names one.
+    pub instance_id: Option<String>,
+    /// RFC 3339 UTC (the log itself is written in local time).
+    pub start: Option<String>,
+    pub end: Option<String>,
+    pub status: SetupApiStatus,
+    /// e.g. `0xe0000203` from `FAILURE(0xe0000203)`.
+    pub status_code: Option<String>,
+    pub error_count: u32,
+    pub warning_count: u32,
+    /// First few `!!!` lines, trimmed.
+    pub errors: Vec<String>,
+    /// INF files mentioned in the section (lower-case file names).
+    pub infs: Vec<String>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct DumpFile {
+    pub path: String,
+    #[ts(type = "number")]
+    pub size: u64,
+    /// Last write time, RFC 3339 UTC.
+    pub modified: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
@@ -63,6 +164,10 @@ pub struct DeviceRecord {
     pub driver: Option<DriverInfo>,
     pub install: InstallDates,
     pub power: Option<PowerInfo>,
+    /// Network adapters only: `NetCfgInstanceId` GUID from the driver key,
+    /// used to tie WLAN/NDIS events (which log `InterfaceGuid`) to the device.
+    #[serde(default)]
+    pub net_cfg_instance_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]

@@ -12,10 +12,12 @@ pub fn collect(warnings: &mut Vec<SourceWarning>) -> MachineInfo {
             instance_id: None,
         })
     };
-    let mut get = |k: &str, v: &str| read_string(k, v).unwrap_or_else(|e| {
-        warn(e);
-        None
-    });
+    let mut get = |k: &str, v: &str| {
+        read_string(k, v).unwrap_or_else(|e| {
+            warn(e);
+            None
+        })
+    };
     let build = get(NT_CV, "CurrentBuild");
     let display = get(NT_CV, "DisplayVersion");
     let manufacturer = get(BIOS, "SystemManufacturer");

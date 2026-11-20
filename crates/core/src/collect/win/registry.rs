@@ -28,7 +28,10 @@ pub fn read_dword(subkey: &str, value: &str) -> Result<Option<u32>, String> {
     match rc {
         ERROR_SUCCESS => Ok(Some(data)),
         e if e.0 == 2 => Ok(None), // ERROR_FILE_NOT_FOUND: value absent
-        e => Err(format!("RegGetValue({subkey}\\{value}) failed: Win32 error {}", e.0)),
+        e => Err(format!(
+            "RegGetValue({subkey}\\{value}) failed: Win32 error {}",
+            e.0
+        )),
     }
 }
 
@@ -51,7 +54,10 @@ pub fn read_string(subkey: &str, value: &str) -> Result<Option<String>, String> 
         return Ok(None);
     }
     if rc != ERROR_SUCCESS {
-        return Err(format!("RegGetValue({subkey}\\{value}) failed: Win32 error {}", rc.0));
+        return Err(format!(
+            "RegGetValue({subkey}\\{value}) failed: Win32 error {}",
+            rc.0
+        ));
     }
     let mut buf = vec![0u8; size as usize];
     let rc = unsafe {
@@ -66,7 +72,10 @@ pub fn read_string(subkey: &str, value: &str) -> Result<Option<String>, String> 
         )
     };
     if rc != ERROR_SUCCESS {
-        return Err(format!("RegGetValue({subkey}\\{value}) failed: Win32 error {}", rc.0));
+        return Err(format!(
+            "RegGetValue({subkey}\\{value}) failed: Win32 error {}",
+            rc.0
+        ));
     }
     Ok(Some(from_wide(&bytes_to_u16(&buf[..size as usize]))))
 }

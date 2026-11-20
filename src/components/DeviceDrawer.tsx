@@ -1,10 +1,25 @@
 import { Copy, X } from "lucide-react";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useMemo, type ReactNode } from "react";
 import type { DeviceRecord } from "../bindings/DeviceRecord";
+import type { LatestSnapshot } from "../bindings/LatestSnapshot";
+import type { MatchAssessment } from "../bindings/MatchAssessment";
+import { eventLevel, levelLabel, levelTone, matchLabel, shortProvider, signalInfo, when } from "../lib/analysis";
 import { deviceState, signatureLabel, signatureTone } from "../lib/device";
 import { Badge } from "./ui";
 
-export function DeviceDrawer({ device, onClose }: { device: DeviceRecord; onClose: () => void }) {
+const RECENT = 15;
+
+export function DeviceDrawer({
+  device,
+  match,
+  latest,
+  onClose,
+}: {
+  device: DeviceRecord;
+  match: MatchAssessment | null;
+  latest: LatestSnapshot;
+  onClose: () => void;
+}) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -12,6 +27,11 @@ export function DeviceDrawer({ device, onClose }: { device: DeviceRecord; onClos
   }, [onClose]);
 
   const st = deviceState(device);
+  const evIdx = useMemo(() => {
+    const out: number[] = [];
+    latest.analysis.eventDevice.forEach((d, i) => d === device.instanceId && out.push(i));
+    return out;
+  }, [latest, device.instanceId]);
   const dr = device.driver;
   const pw = device.power;
 
@@ -40,6 +60,58 @@ export function DeviceDrawer({ device, onClose }: { device: DeviceRecord; onClos
               <b>Code {device.status.problemCode}:</b> {device.status.problemText}
             </div>
           )}
+
+          {match && match.kind.kind !== "none" && (
+            <section>
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">Driver match</h3>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge tone={levelTone[match.level]}>{levelLabel[match.level]}</Badge>
+                <span className="text-zinc-300">{matchLabel(match)}</span>
+                {match.inbox && <Badge tone="muted">Inbox (ships with Windows)</Badge>}
+              </div>
+              {match.notes.length > 0 && (
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-zinc-300">
+                  {match.notes.map((n, i) => (
+                    <li key={i}>{n}</li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          )}
+
+          <section>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+              Recent events ({evIdx.length} in {latest.snapshot.eventWindowDays} days)
+            </h3>
+            {evIdx.length === 0 ? (
+              <p className="text-zinc-500">No collected events are attributed to this device.</p>
+            ) : (
+              <ul className="space-y-1.5">
+                {evIdx.slice(0, RECENT).map((i) => {
+                  const e = latest.snapshot.events[i];
+                  if (!e) return null;
+                  const sig = latest.analysis.eventSignal[i];
+                  const lv = eventLevel(e.level);
+                  return (
+                    <li key={i} className="rounded-md bg-zinc-900 px-2.5 py-1.5">
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <span className="tabular-nums text-zinc-500">{when(e.time)}</span>
+                        <Badge tone={lv.tone}>{lv.label}</Badge>
+                        <span className="text-zinc-400">
+                          {shortProvider(e.provider)} {e.eventId}
+                        </span>
+                        {sig && <Badge tone={signalInfo[sig].tone}>{signalInfo[sig].label}</Badge>}
+                      </div>
+                      {e.message && <p className="mt-0.5 line-clamp-2 text-xs text-zinc-300" title={e.message}>{e.message}</p>}
+                    </li>
+                  );
+                })}
+                {evIdx.length > RECENT && (
+                  <li className="text-xs text-zinc-500">…and {evIdx.length - RECENT} more on the Logs page.</li>
+                )}
+              </ul>
+            )}
+          </section>
 
           <Section title="Device">
             <Row k="Instance ID" v={device.instanceId} mono copy />

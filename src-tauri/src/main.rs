@@ -10,7 +10,9 @@ fn main() {
             use windows::Win32::System::Console::{ATTACH_PARENT_PROCESS, AttachConsole};
             let _ = AttachConsole(ATTACH_PARENT_PROCESS);
         }
-        std::process::exit(auriga_lib::dump::dump_snapshot(args.get(i + 1).map(String::as_str)));
+        std::process::exit(auriga_lib::dump::dump_snapshot(
+            args.get(i + 1).map(String::as_str),
+        ));
     }
     auriga_lib::run()
 }

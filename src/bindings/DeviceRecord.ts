@@ -12,4 +12,9 @@ name: string, description: string | null, class: string | null, classGuid: strin
 /**
  * False for "ghost" devices: installed before, not currently connected.
  */
-present: boolean, status: DeviceStatus, driver: DriverInfo | null, install: InstallDates, power: PowerInfo | null, };
+present: boolean, status: DeviceStatus, driver: DriverInfo | null, install: InstallDates, power: PowerInfo | null, 
+/**
+ * Network adapters only: `NetCfgInstanceId` GUID from the driver key,
+ * used to tie WLAN/NDIS events (which log `InterfaceGuid`) to the device.
+ */
+netCfgInstanceId: string | null, };

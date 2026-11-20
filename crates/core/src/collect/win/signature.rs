@@ -171,8 +171,10 @@ fn file_hash(admin: isize, file: HANDLE) -> Option<Vec<u8>> {
         return None;
     }
     let mut buf = vec![0u8; len as usize];
-    unsafe { CryptCATAdminCalcHashFromFileHandle2(admin, file, &mut len, Some(buf.as_mut_ptr()), None) }
-        .ok()?;
+    unsafe {
+        CryptCATAdminCalcHashFromFileHandle2(admin, file, &mut len, Some(buf.as_mut_ptr()), None)
+    }
+    .ok()?;
     buf.truncate(len as usize);
     Some(buf)
 }
@@ -238,11 +240,21 @@ fn verify_member(
     data.Anonymous.pFile = &mut file;
     data.dwStateAction = WTD_STATEACTION_VERIFY;
     let mut action = WINTRUST_ACTION_GENERIC_VERIFY_V2;
-    let rc2 = unsafe { WinVerifyTrust(HWND::default(), &mut action, (&mut data as *mut WINTRUST_DATA).cast()) };
+    let rc2 = unsafe {
+        WinVerifyTrust(
+            HWND::default(),
+            &mut action,
+            (&mut data as *mut WINTRUST_DATA).cast(),
+        )
+    };
     let signer = leaf_signer(&data);
     data.dwStateAction = WTD_STATEACTION_CLOSE;
     unsafe {
-        WinVerifyTrust(HWND::default(), &mut action, (&mut data as *mut WINTRUST_DATA).cast());
+        WinVerifyTrust(
+            HWND::default(),
+            &mut action,
+            (&mut data as *mut WINTRUST_DATA).cast(),
+        );
     }
 
     let status = match rc2 {
@@ -275,7 +287,8 @@ fn base_trust_data() -> WINTRUST_DATA {
 /// Verify with state, then close it. Returns the WinVerifyTrust status.
 fn run_trust(action: &mut windows::core::GUID, data: &mut WINTRUST_DATA) -> i32 {
     data.dwStateAction = WTD_STATEACTION_VERIFY;
-    let rc = unsafe { WinVerifyTrust(HWND::default(), action, (data as *mut WINTRUST_DATA).cast()) };
+    let rc =
+        unsafe { WinVerifyTrust(HWND::default(), action, (data as *mut WINTRUST_DATA).cast()) };
     data.dwStateAction = WTD_STATEACTION_CLOSE;
     unsafe {
         WinVerifyTrust(HWND::default(), action, (data as *mut WINTRUST_DATA).cast());

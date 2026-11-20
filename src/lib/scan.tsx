@@ -40,6 +40,15 @@ export function ScanProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!inTauri) {
+      // Dev-only browser preview of real scan data written by the `collect`
+      // example; stripped from production builds.
+      if (import.meta.env.DEV) {
+        fetch("/dev-latest.json")
+          .then((r) => (r.ok ? (r.json() as Promise<LatestSnapshot>) : Promise.reject(new Error("missing"))))
+          .then(setLatest, () => setError("Not running inside Tauri — start with `npm run tauri dev`."))
+          .finally(() => setLoading(false));
+        return;
+      }
       setLoading(false);
       setError("Not running inside Tauri — start with `npm run tauri dev`.");
       return;

@@ -110,7 +110,13 @@ fn current_user_sid_string() -> Result<String, IpcError> {
         let mut len = 0u32;
         let _ = GetTokenInformation(tok.0, TokenUser, None, 0, &mut len);
         let mut buf = vec![0u64; (len as usize).div_ceil(8)];
-        GetTokenInformation(tok.0, TokenUser, Some(buf.as_mut_ptr().cast()), len, &mut len)?;
+        GetTokenInformation(
+            tok.0,
+            TokenUser,
+            Some(buf.as_mut_ptr().cast()),
+            len,
+            &mut len,
+        )?;
         let user = &*(buf.as_ptr() as *const TOKEN_USER);
         let mut s = PWSTR::null();
         ConvertSidToStringSidW(user.User.Sid, &mut s)?;
@@ -364,7 +370,9 @@ fn spawn(exe: &Path, args: &HelperArgs, mode: LaunchMode) -> Result<Proc, IpcErr
                 return Err(e.into());
             }
             if info.hProcess.is_invalid() {
-                return Err(IpcError::Protocol("no process handle from ShellExecuteEx".into()));
+                return Err(IpcError::Protocol(
+                    "no process handle from ShellExecuteEx".into(),
+                ));
             }
             Ok(Proc::Shell(Handle(info.hProcess)))
         }

@@ -70,7 +70,11 @@ pub fn random_hex(bytes: usize) -> Result<String, getrandom::Error> {
 
 /// Constant-time comparison for the session token.
 pub fn token_eq(a: &str, b: &str) -> bool {
-    a.len() == b.len() && a.bytes().zip(b.bytes()).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0
+    a.len() == b.len()
+        && a.bytes()
+            .zip(b.bytes())
+            .fold(0u8, |acc, (x, y)| acc | (x ^ y))
+            == 0
 }
 
 /// Command line given to the helper. Values are validated hex, so no
@@ -135,8 +139,7 @@ mod tests {
             token: random_hex(32).unwrap(),
             parent_pid: 1234,
         };
-        let parsed =
-            HelperArgs::parse(a.to_command_line().split(' ').map(String::from)).unwrap();
+        let parsed = HelperArgs::parse(a.to_command_line().split(' ').map(String::from)).unwrap();
         assert_eq!(parsed, a);
     }
 
@@ -145,12 +148,42 @@ mod tests {
         let tok = "a".repeat(64);
         let good_pipe = format!("{PIPE_PREFIX}{}", "0".repeat(32));
         for bad in [
-            s(&["--pipe", r"\\.\pipe\other", "--token", &tok, "--parent-pid", "1"]),
-            s(&["--pipe", &good_pipe, "--token", "short", "--parent-pid", "1"]),
+            s(&[
+                "--pipe",
+                r"\\.\pipe\other",
+                "--token",
+                &tok,
+                "--parent-pid",
+                "1",
+            ]),
+            s(&[
+                "--pipe",
+                &good_pipe,
+                "--token",
+                "short",
+                "--parent-pid",
+                "1",
+            ]),
             s(&["--pipe", &good_pipe, "--token", &tok, "--parent-pid", "x"]),
             s(&["--pipe", &good_pipe, "--token", &tok]),
-            s(&["--pipe", &good_pipe, "--token", &tok, "--parent-pid", "1", "--evil", "x"]),
-            s(&["--pipe", &format!("{good_pipe}&calc"), "--token", &tok, "--parent-pid", "1"]),
+            s(&[
+                "--pipe",
+                &good_pipe,
+                "--token",
+                &tok,
+                "--parent-pid",
+                "1",
+                "--evil",
+                "x",
+            ]),
+            s(&[
+                "--pipe",
+                &format!("{good_pipe}&calc"),
+                "--token",
+                &tok,
+                "--parent-pid",
+                "1",
+            ]),
         ] {
             assert!(HelperArgs::parse(bad.clone()).is_err(), "{bad:?}");
         }
@@ -161,12 +194,20 @@ mod tests {
         let r: Result<AppMessage, _> =
             serde_json::from_str(r#"{"type":"request","id":1,"op":{"op":"runCommand","cmd":"x"}}"#);
         assert!(r.is_err());
-        let r: Result<AppMessage, _> =
-            serde_json::from_str(r#"{"type":"request","id":1,"op":{"op":"ping","nonce":5,"extra":1}}"#);
+        let r: Result<AppMessage, _> = serde_json::from_str(
+            r#"{"type":"request","id":1,"op":{"op":"ping","nonce":5,"extra":1}}"#,
+        );
         assert!(r.is_err());
         let ok: AppMessage =
-            serde_json::from_str(r#"{"type":"request","id":1,"op":{"op":"ping","nonce":5}}"#).unwrap();
-        assert_eq!(ok, AppMessage::Request { id: 1, op: HelperOp::Ping { nonce: 5 } });
+            serde_json::from_str(r#"{"type":"request","id":1,"op":{"op":"ping","nonce":5}}"#)
+                .unwrap();
+        assert_eq!(
+            ok,
+            AppMessage::Request {
+                id: 1,
+                op: HelperOp::Ping { nonce: 5 }
+            }
+        );
     }
 
     #[test]
